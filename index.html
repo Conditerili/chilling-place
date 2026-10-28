@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -152,12 +151,34 @@
     }
 
     function showThoughts() {
-      display("💭 Разберём одну мысль",
-        "1. Что именно тебя беспокоит?\n" +
-        "2. Что ты знаешь наверняка, а что предполагаешь?\n" +
-        "3. Какой ещё исход возможен?\n\n" +
-        "Необязательно отвечать на всё сразу. Можно начать с одного пункта.");
-    }
+  const result = document.getElementById("result");
+
+  result.innerHTML = `
+    <h3>💭 Разберём одну мысль</h3>
+
+    <label>1. Что произошло?</label>
+    <textarea id="situation" placeholder="Опиши ситуацию..."></textarea>
+
+    <label>2. Какая мысль тебя тревожит?</label>
+    <textarea id="thought" placeholder="Что ты сейчас думаешь?"></textarea>
+
+    <label>3. Насколько сильна тревога? (0–10)</label>
+    <input id="anxiety" type="range" min="0" max="10" value="5"
+      oninput="document.getElementById('anxietyValue').textContent=this.value">
+
+    <p>Уровень тревоги: <strong id="anxietyValue">5</strong>/10</p>
+
+    <label>4. Какие есть факты в пользу этой мысли?</label>
+    <textarea id="facts" placeholder="Что ты знаешь наверняка?"></textarea>
+
+    <label>5. Какое ещё объяснение возможно?</label>
+    <textarea id="alternative" placeholder="Попробуй рассмотреть другой вариант..."></textarea>
+
+    <button onclick="finishThoughts()">Сформировать итог</button>
+
+    <div id="thoughtSummary"></div>
+  `;
+}
 
     function showGrounding() {
       display("🌱 Возвращаем внимание в настоящее",
@@ -199,6 +220,38 @@
       const result = document.getElementById("result");
       result.appendChild(button);
     }
+
+function finishThoughts() {
+  const situation = document.getElementById("situation").value.trim();
+  const thought = document.getElementById("thought").value.trim();
+  const anxiety = document.getElementById("anxiety").value;
+  const facts = document.getElementById("facts").value.trim();
+  const alternative = document.getElementById("alternative").value.trim();
+
+  const summary = document.getElementById("thoughtSummary");
+
+  if (!situation && !thought) {
+    summary.textContent =
+      "Сначала опиши ситуацию или тревожную мысль 💙";
+    return;
+  }
+
+  const heading = document.createElement("h3");
+  heading.textContent = "🌿 Твоя запись";
+
+  const content = document.createElement("p");
+  content.style.whiteSpace = "pre-line";
+  content.textContent =
+    "Что произошло:\n" + (situation || "Не указано") +
+    "\n\nТревожная мысль:\n" + (thought || "Не указана") +
+    "\n\nТревога: " + anxiety + "/10" +
+    "\n\nФакты:\n" + (facts || "Пока не записаны") +
+    "\n\nДругое объяснение:\n" +
+    (alternative || "Пока не записано") +
+    "\n\nТы не обязан решить всё сразу. Можно вернуться к этой записи позже 💙";
+
+  summary.replaceChildren(heading, content);
+}
   </script>
 </body>
 </html>
