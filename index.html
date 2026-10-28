@@ -228,7 +228,27 @@ function finishThoughts() {
   const facts = document.getElementById("facts").value.trim();
   const alternative = document.getElementById("alternative").value.trim();
 
-  const summary = document.getElementById("thoughtSummary");
+  const summary = document.getElementById("thoughtSummary"); 
+  const entry = {
+  id: Date.now(),
+  date: new Date().toLocaleString(),
+  situation: situation,
+  thought: thought,
+  anxiety: Number(anxiety),
+  facts: facts,
+  alternative: alternative
+};
+
+const savedEntries = JSON.parse(
+  localStorage.getItem("chillingThoughts") || "[]"
+);
+
+savedEntries.push(entry);
+
+localStorage.setItem(
+  "chillingThoughts",
+  JSON.stringify(savedEntries)
+);
 
   if (!situation && !thought) {
     summary.textContent =
