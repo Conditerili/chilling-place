@@ -85,6 +85,7 @@
 <body>
   <main class="app">
     <div class="brand">YOUR PERSONAL SAFE SPACE</div>
+    <button onclick="showThoughtHistory()">📚 Мои записи</button>
     <h1>CHILLING PLACE 🌿</h1>
     <p class="subtitle">Твоё место, чтобы выдохнуть.</p>
 
@@ -272,6 +273,80 @@ localStorage.setItem(
 
   summary.replaceChildren(heading, content);
 }
+
+function showThoughtHistory() {
+  const result = document.getElementById("result");
+  const entries = JSON.parse(
+    localStorage.getItem("chillingThoughts") || "[]"
+  );
+
+  result.replaceChildren();
+
+  const title = document.createElement("h3");
+  title.textContent = "📚 Мои записи";
+  result.appendChild(title);
+
+  const back = document.createElement("button");
+  back.textContent = "← Вернуться к дневнику";
+  back.onclick = showThoughts;
+  result.appendChild(back);
+
+  if (entries.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "Пока записей нет. Создай первую запись 💙";
+    result.appendChild(empty);
+    return;
+  }
+
+  entries.slice().reverse().forEach(function(entry) {
+    const card = document.createElement("div");
+    card.style.cssText =
+      "padding:12px;margin:12px 0;border:1px solid #ddd;border-radius:12px";
+
+    const date = document.createElement("p");
+    date.textContent = "📅 " + entry.date;
+
+    const thought = document.createElement("p");
+    thought.textContent = "💭 " + (entry.thought || "Мысль не указана");
+
+    const anxiety = document.createElement("p");
+    anxiety.textContent = "Тревога: " + entry.anxiety + "/10";
+
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "Посмотреть всю запись";
+
+    const body = document.createElement("p");
+    body.style.whiteSpace = "pre-line";
+    body.textContent =
+      "Ситуация: " + (entry.situation || "Не указана") +
+      "\n\nФакты: " + (entry.facts || "Не записаны") +
+      "\n\nДругое объяснение: " +
+      (entry.alternative || "Не записано");
+
+    details.append(summary, body);
+
+    const remove = document.createElement("button");
+    remove.textContent = "Удалить запись";
+    remove.onclick = function() {
+      if (!confirm("Удалить эту запись?")) return;
+
+      const remaining = entries.filter(function(item) {
+        return item.id !== entry.id;
+      });
+
+      localStorage.setItem(
+        "chillingThoughts",
+        JSON.stringify(remaining)
+      );
+
+      showThoughtHistory();
+    };
+
+    card.append(date, thought, anxiety, details, remove);
+    result.appendChild(card);
+  });
+     }
   </script>
 </body>
 </html>
