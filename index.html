@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#edf1ff">
+  <title>CHILLING PLACE</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px 18px 32px;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(160deg, #edf1ff, #f8f4ff 60%, #f4f8ff);
+      color: #29334d;
+    }
+
+    .app { max-width: 480px; margin: auto; }
+
+    .brand {
+      color: #777da9;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 3px;
+    }
+
+    h1 { font-size: 30px; margin: 8px 0; }
+    p { line-height: 1.55; }
+
+    .subtitle { color: #717990; margin-bottom: 24px; }
+
+    .card {
+      background: rgba(255,255,255,.85);
+      border: 1px solid #fff;
+      border-radius: 22px;
+      padding: 20px;
+      margin: 14px 0;
+      box-shadow: 0 8px 28px rgba(70,80,130,.06);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #dfe7ff, #e9ddff);
+    }
+
+    h2 { font-size: 18px; margin: 0 0 8px; }
+    .muted { color: #747b91; font-size: 14px; }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 14px;
+      background: #e9edff;
+      color: #303b68;
+      font: inherit;
+      font-weight: 650;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: #656fc0;
+      color: white;
+    }
+
+    button:active { transform: scale(.99); }
+
+    #result {
+      white-space: pre-line;
+      line-height: 1.7;
+    }
+
+    footer {
+      text-align: center;
+      color: #858ba0;
+      font-size: 12px;
+      padding: 20px 4px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="brand">YOUR PERSONAL SAFE SPACE</div>
+    <h1>CHILLING PLACE 🌿</h1>
+    <p class="subtitle">Твоё место, чтобы выдохнуть.</p>
+
+    <section class="card hero">
+      <h2>Как ты сейчас?</h2>
+      <p>Не нужно решать всё сразу. Начнём с одного небольшого шага.</p>
+      <button class="primary" onclick="showSupport()">
+        💙 Мне тревожно
+      </button>
+      <button onclick="showThoughts()">
+        💭 Не могу остановить мысли
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>🧠 Therapy Space</h2>
+      <p class="muted">Упражнения для самоподдержки</p>
+      <button onclick="showGrounding()">🌱 Упражнение на заземление</button>
+      <button onclick="showThoughts()">📝 Разобрать тревожную мысль</button>
+    </section>
+
+    <section class="card">
+      <h2>🎯 Daily Quests</h2>
+      <p class="muted">Маленькие шаги без давления</p>
+      <button onclick="showQuest()">✨ Моё задание</button>
+    </section>
+
+    <section class="card">
+      <h2>🎮 Chill Zone</h2>
+      <p class="muted">Переключи внимание на несколько минут</p>
+      <button onclick="showGame()">🔎 Игра «Найди вокруг»</button>
+      <button onclick="showRiddle()">🧩 Загадка</button>
+    </section>
+
+    <section class="card" id="result" aria-live="polite">
+      Здесь будут появляться твои упражнения и задания.
+    </section>
+
+    <footer>
+      CHILLING PLACE · Поддержка, а не замена профессиональной помощи
+    </footer>
+  </main>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    function display(title, text) {
+      document.getElementById("result").textContent =
+        title + "\n\n" + text;
+      document.getElementById("result").scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+    }
+
+    function showSupport() {
+      display("💙 Давай немного замедлимся",
+        "Поставь ноги на удобную поверхность, если тебе так комфортно.\n\n" +
+        "Посмотри вокруг и назови три предмета, которые видишь.\n\n" +
+        "Не нужно заставлять себя успокоиться. Просто побудь здесь немного.\n\n" +
+        "Хочешь попробовать упражнение или поговорить о том, что случилось?");
+    }
+
+    function showThoughts() {
+      display("💭 Разберём одну мысль",
+        "1. Что именно тебя беспокоит?\n" +
+        "2. Что ты знаешь наверняка, а что предполагаешь?\n" +
+        "3. Какой ещё исход возможен?\n\n" +
+        "Необязательно отвечать на всё сразу. Можно начать с одного пункта.");
+    }
+
+    function showGrounding() {
+      display("🌱 Возвращаем внимание в настоящее",
+        "Если тебе комфортно, попробуй заметить:\n\n" +
+        "5 предметов, которые видишь;\n" +
+        "4 ощущения от прикосновений;\n" +
+        "3 звука вокруг;\n" +
+        "2 запаха;\n" +
+        "1 вкус или ощущение во рту.\n\n" +
+        "Можно остановиться в любой момент. Если упражнение усиливает дискомфорт, пропусти его.");
+    }
+
+    function showQuest() {
+      display("✨ Твоё маленькое задание",
+        "Выбери одно небольшое действие на ближайшие пять минут: " +
+        "выпей воды, немного потянись, посмотри в окно или наведи порядок на одном маленьком участке.\n\n" +
+        "Это предложение, а не обязанность. Отдых тоже подходит.");
+    }
+
+    function showGame() {
+      const tasks = [
+        "Найди вокруг три предмета одного цвета.",
+        "Найди предмет круглой формы, затем квадратной.",
+        "Заметь пять разных текстур вокруг себя.",
+        "Найди вокруг предмет, который давно не привлекал твоего внимания."
+      ];
+      const task = tasks[Math.floor(Math.random() * tasks.length)];
+      display("🔎 Игра «Найди вокруг»", task + "\n\nГотово? Можешь выбрать ещё раз!");
+    }
+
+    function showRiddle() {
+      display("🧩 Небольшая загадка",
+        "Что становится мокрее, пока сушит?\n\n" +
+        "Подумай немного, а затем нажми кнопку ниже.");
+      const button = document.createElement("button");
+      button.textContent = "Показать ответ";
+      button.onclick = () =>
+        display("🧩 Ответ", "Полотенце 😊");
+      const result = document.getElementById("result");
+      result.appendChild(button);
+    }
+  </script>
+</body>
+</html>
