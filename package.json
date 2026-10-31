@@ -1,0 +1,8 @@
+{
+  "name": "chilling-place",
+  "version": "6.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node --test tests/*.test.js", "bot": "node bot/server.js"},
+  "engines": {"node": ">=22"}
+}
