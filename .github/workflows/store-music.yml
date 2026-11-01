@@ -1,0 +1,48 @@
+name: Store licensed audio originals
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'music/catalog.json'
+      - '.github/workflows/store-music.yml'
+permissions:
+  contents: write
+concurrency: music-library
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import verified MP3s into the dedicated music-library branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          album="$RUNNER_TEMP/music"
+          mkdir -p "$album"
+          python3 - "$album" <<'PY'
+          import concurrent.futures, hashlib, json, pathlib, subprocess, sys
+          dest = pathlib.Path(sys.argv[1])
+          tracks = json.loads(pathlib.Path('music/catalog.json').read_text())
+          def download(track):
+              path = dest / track['file']
+              subprocess.run(['curl','-fsSL','--retry','4','--retry-all-errors','--max-time','150',track['url'],'-o',str(path)],check=True)
+              if path.stat().st_size != track['bytes'] or hashlib.sha1(path.read_bytes()).hexdigest() != track['sha1']:
+                  raise ValueError('Unexpected MP3 contents: '+track['file'])
+          with concurrent.futures.ThreadPoolExecutor(4) as pool:
+              list(pool.map(download, tracks))
+          PY
+          cp music/catalog.json "$album/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git fetch origin refs/heads/music-library; then
+            git switch -c music-library FETCH_HEAD
+          else
+            git switch --orphan music-library
+          fi
+          cp "$album"/* .
+          git add -- '*.mp3' catalog.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Store verified 963 Hz original recordings and credits'
+            git push origin HEAD:refs/heads/music-library
+          fi

@@ -1,157 +1,79 @@
-export const tracks = [
-  [
-    "RMCO · Meditation Music № 1",
-    "https://soundcloud.com/rmcorelaxingmusic/track-1-963hz"
-  ],
-  [
-    "RMCO · Meditation Music № 2",
-    "https://soundcloud.com/rmcorelaxingmusic/track-2-963hz"
-  ],
-  [
-    "RMCO · Meditation Music № 3",
-    "https://soundcloud.com/rmcorelaxingmusic/track-3-963hz"
-  ],
-  [
-    "RMCO · Meditation Music № 4",
-    "https://soundcloud.com/rmcorelaxingmusic/track-4-963hz"
-  ],
-  [
-    "RMCO · Meditation Music № 5",
-    "https://soundcloud.com/rmcorelaxingmusic/track-5-963hz"
-  ],
-  [
-    "Gaia Meditation · Медитация",
-    "https://soundcloud.com/gaiameditation/963-hz-meditation"
-  ],
-  [
-    "Flynn Lucas · 963 Hz",
-    "https://soundcloud.com/flynnlucas/963-hz"
-  ],
-  [
-    "Meditative Mind · 963 и 285 Гц",
-    "https://soundcloud.com/meditative-mind/963-hz-frequency-of-gods-pineal-gland-activator-deep-healing-285-hz-solfeggio-frequency-music"
-  ],
-  [
-    "Gaia Meditation · Soul Healing Frequency",
-    "https://soundcloud.com/gaiameditation/963-hz-soul-healing-frequency"
-  ],
-  [
-    "Meditative Mind · Чистый тон",
-    "https://soundcloud.com/meditative-mind/963hz-pineal-gland-activator-ultimate-pure-tone-frequency-music"
-  ],
-  [
-    "Healing Vibes · Solfeggio",
-    "https://soundcloud.com/healing-vibes-750138827/963-hz-powerful-pure-tone-solfeggio-frequency-activate-pineal-gland-balance-crown-chakra"
-  ],
-  [
-    "Cice Rivera · 963 Hz",
-    "https://soundcloud.com/cice-rivera/963-hz-nature-third-eye-activation"
-  ],
-  [
-    "Ana Lola Roman · World’s Not Ending",
-    "https://soundcloud.com/analolaroman/963-hz-worlds-not-ending"
-  ],
-  [
-    "Meditative Mind · Бинауральная запись",
-    "https://soundcloud.com/meditative-mind/963hz-32hz-brain-waves-gods-own-frequency-binaural-beats-ft-963hz"
-  ],
-  [
-    "Эмбиент · Три частоты",
-    "https://www.youtube.com/watch?v=pSOSxUDElek"
-  ],
-  [
-    "Мантра Ом и океан",
-    "https://www.youtube.com/watch?v=16ufjpKsjUE"
-  ],
-  [
-    "Лунный лес",
-    "https://www.youtube.com/watch?v=-W-HkC1c-kE"
-  ],
-  [
-    "Inner Peace",
-    "https://www.youtube.com/watch?v=Vkb5Cg4ArOY"
-  ],
-  [
-    "Хрустальные чаши",
-    "https://www.youtube.com/watch?v=B33xdsmJTdE"
-  ],
-  [
-    "Return to Oneness",
-    "https://www.youtube.com/watch?v=Pr-7S5ZuNGQ"
-  ],
-  [
-    "Медитация перед сном",
-    "https://www.youtube.com/watch?v=HDQfqwhkliY"
-  ],
-  [
-    "Час хэндпана",
-    "https://www.youtube.com/watch?v=_TzTpbT4XiQ"
-  ],
-  [
-    "Мандала",
-    "https://www.youtube.com/watch?v=7WVE9M_sgv8"
-  ],
-  [
-    "Девять часов звучания",
-    "https://www.youtube.com/watch?v=KYDeJ48aQDA"
-  ],
-  [
-    "Pure Miracle Tones · S4T9",
-    "https://www.youtube.com/watch?v=uBcKoNCHRh8"
-  ],
-  [
-    "Тибетская чаша",
-    "https://www.youtube.com/watch?v=xSBl2vQze7k"
-  ],
-  [
-    "Тибетские звуки",
-    "https://www.youtube.com/watch?v=CXbS6zAmQh0"
-  ],
-  [
-    "Тибетская медитация",
-    "https://www.youtube.com/watch?v=x8YCS2_RCOo"
-  ],
-  [
-    "Malte Marten · A Prayer to God",
-    "https://www.youtube.com/watch?v=aZvt7FqKi2o"
-  ],
-  [
-    "Мелодия дождя",
-    "https://www.youtube.com/watch?v=3xHL3n43E10"
-  ]
-];
-
-export function playerURL(link){
-  const source=new URL(link);
-  if(source.hostname==='www.youtube.com'){
-    return 'https://www.youtube-nocookie.com/embed/'+source.searchParams.get('v')+'?playsinline=1';
-  }
-  const params=new URLSearchParams({url:link,color:'#d979a0',auto_play:'false',show_artwork:'false',show_user:'true',single_active:'true'});
-  return 'https://w.soundcloud.com/player/?'+params;
-}
+const mirror='https://raw.githubusercontent.com/Conditerili/chilling-place/music-library/';
+const cacheName='chilling-place-music-v1';
 
 export function attachWaterPlayer(trigger,panel){
-  const select=panel.querySelector('select');
-  const slot=panel.querySelector('.water-media');
-  const source=panel.querySelector('a');
-  tracks.forEach(([name],i)=>select.add(new Option((i+1)+' · '+name,i)));
-  function showTrack(){
-    const [name,link]=tracks[select.selectedIndex];
-    const frame=document.createElement('iframe');
-    frame.title=name;frame.allow='encrypted-media; autoplay';frame.referrerPolicy='strict-origin-when-cross-origin';
-    frame.height=link.includes('youtube.com')?'210':'166';frame.src=playerURL(link);
-    slot.replaceChildren(frame);source.href=link;
-    source.textContent='Открыть в '+(link.includes('youtube.com')?'YouTube':'SoundCloud')+' ↗';
+  const select=panel.querySelector('select'),slot=panel.querySelector('.water-media');
+  const credit=panel.querySelector('a'),license=document.createElement('a');
+  license.target='_blank';license.rel='noopener noreferrer';credit.after(' · ',license);
+  const audio=document.createElement('audio');audio.controls=true;audio.preload='none';
+  audio.style.width='100%';slot.append(audio);
+  const save=document.createElement('button');save.type='button';save.className='secondary';save.textContent='Сохранить музыку на устройстве';
+  const status=document.createElement('p');status.className='small muted';status.setAttribute('role','status');slot.after(save,status);
+  let catalog,tracks=[],selection=0,objectURL='',fallback=false;
+  function cacheKey(track){return new URL('music/offline/'+track.sha1,document.baseURI).href;}
+  function stop(){
+    selection++;audio.pause();audio.removeAttribute('src');audio.load();
+    if(objectURL){URL.revokeObjectURL(objectURL);objectURL='';}
   }
-  function close(){
-    slot.replaceChildren();panel.hidden=true;trigger.setAttribute('aria-expanded','false');
-    trigger.classList.remove('water-touch');trigger.focus({preventScroll:true});
+  async function selectTrack(){
+    stop();
+    const token=selection,track=tracks[select.selectedIndex];if(!track)return;
+    credit.href=track.source;credit.textContent=track.artist+' · источник';
+    license.href=track.license;license.textContent='CC '+track.license.split('/')[4].toUpperCase();
+    fallback=false;
+    let cached;
+    try{cached=await window.caches?.match(cacheKey(track),{cacheName});}catch{}
+    if(token!==selection)return;
+    if(cached){
+      const blob=await cached.blob();if(token!==selection)return;
+      objectURL=URL.createObjectURL(blob);audio.src=objectURL;
+    }else audio.src=mirror+track.file;
   }
-  trigger.onclick=()=>{
-    if(!panel.hidden){close();return;}
-    trigger.classList.remove('water-touch');void trigger.offsetWidth;trigger.classList.add('water-touch');
-    panel.hidden=false;trigger.setAttribute('aria-expanded','true');showTrack();
+  audio.onerror=()=>{
+    const track=tracks[select.selectedIndex];
+    if(!track||panel.hidden||!audio.getAttribute('src'))return;
+    if(!fallback){fallback=true;audio.src=track.url;audio.play().catch(()=>{status.textContent='Нажми ▶ для запуска оригинала.';});}
+    else status.textContent='Запись не загрузилась. Открой источник или выбери другую.';
   };
-  select.onchange=showTrack;
-  panel.querySelector('.water-close').onclick=close;
+  save.onclick=async()=>{
+    save.disabled=true;
+    try{
+      if(!window.caches)throw Error();
+      const cache=await caches.open(cacheName);
+      for(const [i,track] of tracks.entries()){
+        status.textContent='Сохранение '+(i+1)+' / '+tracks.length;
+        const key=cacheKey(track);if(await cache.match(key))continue;
+        let stored=false;
+        for(const url of [mirror+track.file,track.url]){
+          try{
+            const r=await fetch(url);if(!r.ok)continue;
+            const bytes=await r.arrayBuffer();if(bytes.byteLength!==track.bytes)continue;
+            const digest=await crypto.subtle.digest('SHA-1',bytes);
+            if(Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('')!==track.sha1)continue;
+            await cache.put(key,new Response(bytes,{headers:{'Content-Type':'audio/mpeg'}}));stored=true;break;
+          }catch{}
+        }
+        if(!stored)throw Error();
+      }
+      status.textContent='Все 30 записей сохранены в памяти этого браузера.';
+    }catch{status.textContent='Загрузка прервалась. Проверь сеть и свободное место. Повторное нажатие продолжит загрузку.';}
+    finally{save.disabled=false;}
+  };
+  function close(){stop();panel.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.classList.remove('water-touch');trigger.focus({preventScroll:true});}
+  trigger.onclick=async()=>{
+    if(!panel.hidden){close();return;}
+    trigger.classList.add('water-touch');panel.hidden=false;trigger.setAttribute('aria-expanded','true');
+    if(!tracks.length){
+      save.disabled=true;
+      try{
+        catalog??=fetch(new URL('./music/catalog.json?v=1',import.meta.url)).then(r=>{if(!r.ok)throw Error();return r.json();});
+        tracks=await catalog;
+        if(!select.options.length)tracks.forEach((t,i)=>select.add(new Option((i+1)+' · '+t.artist+' — '+t.title,i)));
+        save.disabled=false;
+        status.textContent='30 записей · '+Math.ceil(tracks.reduce((sum,t)=>sum+t.bytes,0)/1e6)+' МБ для сохранения всей коллекции';
+      }catch{catalog=null;status.textContent='Каталог не загрузился. Закрой и открой плеер ещё раз.';return;}
+    }
+    if(!panel.hidden)selectTrack();
+  };
+  select.onchange=selectTrack;panel.querySelector('.water-close').onclick=close;
 }
