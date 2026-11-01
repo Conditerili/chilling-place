@@ -120,3 +120,38 @@ body:is([data-screen=editor],[data-screen=summary]) :is(.bottom-nav,.footer){dis
 #summary-lines section{position:relative;padding-left:32px;margin:22px 0}#summary-lines section:before{content:attr(data-icon);position:absolute;left:0;color:#ffadcf;font-size:22px}#summary-lines h2{font:600 17px/1.4 system-ui;margin:0 0 5px}#summary-lines p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#ffe9f2}
 .summary-actions{display:flex;gap:8px;margin-top:24px}.summary-actions button{flex:1;padding:10px 5px}body[data-screen=summary] .concept-cta{width:95%}
 .garden-link svg{width:34px;height:34px;vertical-align:middle;filter:drop-shadow(0 0 5px #e5659577)}.bottom-nav svg{width:23px;height:23px;display:block;margin:auto}
+
+/* Glass controls sampled from the three-screen Sakura reference. */
+:root {
+  --sakura-glass: radial-gradient(ellipse at 100% 88%,#ba496a55,transparent 40%),
+    linear-gradient(178deg,#40222eee,#1c1115ee 42%,#200e17ed 70%,#44242fee);
+  --sakura-edge: linear-gradient(152deg,#ad7384,#804554 30%,#a6556e 66%,#ffd0d5 91%,#f37a9a);
+  --sakura-rim: inset 1px 1px 7px #ef9cb72c,inset -2px -2px 9px #fa76965e,0 3px 12px #14080e66;
+}
+.garden-link,.garden-link:first-child,.summary-actions button,.secondary,.quiet,.mood,button.tile {
+  border:1px solid transparent;
+  background-color:#23141c;
+  background-image:var(--sakura-glass),var(--sakura-edge);
+  background-origin:padding-box,padding-box,border-box;
+  background-clip:padding-box,padding-box,border-box;
+  box-shadow:var(--sakura-rim);
+  color:#fff2f5;
+}
+.garden-link:first-child,.mood[aria-pressed=true] {
+  border-color:#ffc0cf;
+  box-shadow:inset 2px 1px 10px #ff8daa8a,inset -2px -2px 9px #ff769a92,0 0 10px #ff67954f;
+}
+.garden-link {border-radius:999px;min-height:clamp(58px,7.45svh,76px)}
+.garden-link svg {color:#f398b1;filter:drop-shadow(0 0 4px #ed749980)}
+.garden-link i {font:32px/1 Georgia,serif;color:#ffc2d4}
+.primary,.concept-cta {
+  color:#29121d;border:1px solid #ffd1dc;border-radius:999px;
+  background:radial-gradient(ellipse at 84% 55%,#71374778,transparent 54%),linear-gradient(178deg,#fba8bd,#ee87a4 18%,#be6988 53%,#d47394 78%,#f784a3);
+  box-shadow:inset 0 1px 6px #fff1f496,inset 0 -2px 9px #ffb1c7a3,0 0 13px #dc547a55;
+}
+.bottom-nav button[aria-current=page] {
+  color:#fff4f7;background:radial-gradient(ellipse at 50% 92%,#bc466b99,#65233444 57%,transparent 78%);
+}
+.bottom-nav button[aria-current=page] svg {filter:drop-shadow(0 0 2px #fff0f5) drop-shadow(0 0 5px #ff557d)}
+.bottom-nav button:not([aria-current=page]) svg {color:#f59cb7}
+button:focus-visible {outline:2px solid #ffdae5;outline-offset:3px}
