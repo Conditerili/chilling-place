@@ -178,3 +178,11 @@ button:focus-visible {outline:2px solid #ffdae5;outline-offset:3px}
 .bottom-nav button[aria-current=page] svg {
   filter:drop-shadow(0 0 2px #fff1f5) drop-shadow(0 0 5px #ff5a83) drop-shadow(0 0 9px #fa456f);
 }
+
+.reading-card{margin:18px 0}.reading-text{font:clamp(22px,5vw,30px)/1.4 Georgia,serif;color:#ffebf3}
+.petal-pond{display:block;position:relative;isolation:isolate;width:100%;height:clamp(210px,40svh,390px);overflow:hidden;border:1px solid #e59eba85;border-radius:30px;background:linear-gradient(#33162522,#20132333),url("sakura-night.webp") center bottom/cover;box-shadow:inset 0 0 20px #190c1c77}
+.pond-bloom{position:absolute;pointer-events:none;width:clamp(30px,10vw,48px);aspect-ratio:1;transform:translate(-50%,-50%)}
+.pond-bloom svg{width:100%;filter:drop-shadow(0 4px 4px #2c1327aa)}
+.pond-bloom::before{content:"";position:absolute;inset:61% -12% 1%;border:1px solid #ffc9dfaa;border-radius:50%;animation:pond-ring 2.5s ease-out forwards}
+@keyframes pond-ring{from{transform:scale(.6);opacity:.8}to{transform:scale(1.65);opacity:.15}}
+[data-motion=reduced] .pond-bloom::before{animation:none}@media(prefers-reduced-motion:reduce){.pond-bloom::before{animation:none}}
