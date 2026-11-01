@@ -42,6 +42,6 @@ export function createBotServer({token, secret, appUrl, send=async body=>{
   });
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href){
-  const server=createBotServer({token:process.env.BOT_TOKEN,secret:process.env.WEBHOOK_SECRET,appUrl:process.env.APP_URL||'https://conditerili.github.io/chilling-place/'});
+  const server=createBotServer({token:process.env.BOT_TOKEN,secret:process.env.WEBHOOK_SECRET,appUrl:process.env.APP_URL||'https://conditerili.github.io/chilling-place/listen.html'});
   server.listen(Number(process.env.PORT)||3000,()=>console.log('CHILLING PLACE webhook ready'));
 }

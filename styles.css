@@ -206,3 +206,5 @@ body[data-screen=now] #screen-title{font:500 clamp(19px,5.4vw,29px)/1 Georgia,se
 .water-player{margin:12px auto;text-align:left;padding:14px;max-width:400px}.water-head{display:flex;align-items:center;justify-content:space-between}.water-head label{margin:0}.water-player select{width:100%;margin:6px 0}.water-media iframe{width:100%;border:0;display:block;border-radius:12px;background:#22131c}.water-player a{display:inline-block;margin-top:8px;font-size:13px}
 [data-motion=reduced] :is(.water-surface,.water-player,.water-touch:after){animation:none}
 @media(prefers-reduced-motion:reduce){.water-surface,.water-player:not([hidden]),.water-touch:after{animation:none}}
+
+#water-home{text-align:center;padding-top:12px}#water-home[hidden]{display:none}

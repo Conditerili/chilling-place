@@ -48,7 +48,10 @@ function screenBack(){
   go(route==='now'?'practices':['summary','editor'].includes(route)?'journal':'now');
 }
 action('screen-back',screenBack);
+attachWaterPlayer($('water-orb'),$('water-player'));
 function render(){
+  $('water-home').hidden=route!=='now';
+  if(route!=='now' && !$('water-player').hidden)$('water-player').querySelector('.water-close').click();
   document.body.dataset.screen=route;
   $('screen-title').textContent=({now:'CHILLING PLACE',editor:'Дневник мыслей',summary:'Твоя запись'})[route]||'';
   $('screen-back').textContent=route==='now'?'☰':'←';
@@ -75,14 +78,13 @@ function renderNow(){
     ['games','✾','Мини-игры','Сад на воде']
   ];
   main.innerHTML = `<section class="garden-home"><h1 class="sr-brand">CHILLING PLACE</h1>
-    <button class="water-orb" id="water-orb" type="button" aria-controls="water-player" aria-expanded="false" aria-label="963 герца — открыть мини-плеер"><span class="water-surface" aria-hidden="true"></span><span class="water-type">963<small>герца</small></span></button>
-    <section class="panel water-player" id="water-player" aria-label="Музыка 963 Гц" hidden><div class="water-head"><label for="water-track">Музыка у воды</label><button type="button" class="water-close icon-button" aria-label="Закрыть плеер">×</button></div><select id="water-track"></select><div class="water-media"></div><a target="_blank" rel="noopener noreferrer"></a></section><p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
+    <p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
     <div class="garden-menu">${destinations.map(([id,icon,title,detail]) =>
       `<button class="garden-link" id="${id}"><span aria-hidden="true">${icon}</span><span><strong>${title}</strong><small>${detail}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div></section>
     <section class="panel check-in"><h2>Как ты сейчас?</h2><div class="moods" id="moods"></div>
     <p class="small muted" id="mood-note">Можно просто заметить своё состояние.</p>
     <button class="quiet" id="support">Мне тревожно</button></section>`;
-  attachWaterPlayer($('water-orb'),$('water-player'));
+
   action('reading',()=>go('reading'));action('games',()=>go('games'));
   action('distract',()=>go('riddle'));action('records',()=>go('journal'));
   for(const name of ['Спокойно','Тревожно','Усталость','Грустно','Не знаю']){const b=document.createElement('button');b.className='mood';b.textContent=name;b.setAttribute('aria-pressed',String(mood===name));b.onclick=()=>{mood=name;renderNowOnlyMoods();};$('moods').append(b);}
@@ -199,6 +201,6 @@ function renderSettings(){
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
   $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
   action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены все записи, черновик и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.4 · Ночная сакура</p>';main.append(about);
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.5.1 · Музыка у воды</p>';main.append(about);
 }
 route=['now','journal','practices','settings','reading','games'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();
