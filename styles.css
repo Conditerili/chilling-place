@@ -186,3 +186,8 @@ button:focus-visible {outline:2px solid #ffdae5;outline-offset:3px}
 .pond-bloom::before{content:"";position:absolute;inset:61% -12% 1%;border:1px solid #ffc9dfaa;border-radius:50%;animation:pond-ring 2.5s ease-out forwards}
 @keyframes pond-ring{from{transform:scale(.6);opacity:.8}to{transform:scale(1.65);opacity:.15}}
 [data-motion=reduced] .pond-bloom::before{animation:none}@media(prefers-reduced-motion:reduce){.pond-bloom::before{animation:none}}
+
+.checkup-options{display:grid;gap:10px;margin-block:18px}
+.checkup-options [aria-pressed=true]{border-color:#ffc9da;background:#67364d;color:white}
+.checkup-link{display:block;margin:8px auto 0;font-size:13px}
+body[data-screen=checkup] .panel h1{font-size:clamp(24px,6vw,34px)}

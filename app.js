@@ -1,4 +1,5 @@
-import {showLibrary,showGardenGame} from './garden-rooms.js?v=2';
+import {startCheckup} from './check-in.js?v=1';
+import {showLibrary,showGardenGame} from './garden-rooms.js?v=3';
 import {createStore, uid, FIELDS} from './storage.js?v=6.2';
 import {practices, quests, riddles} from './content.js?v=6.0.0';
 
@@ -34,7 +35,13 @@ function confirmAction(title,text){return new Promise(resolve=>{
   dialog.oncancel=e=>{e.preventDefault();finish(false);};dialog.showModal();
 });}
 let summaryEntry=null, summarySaved=false;
+let checkupState=null;
+function openCheckup(){
+  if(checkupState?.draftId!==draft.id)checkupState={draftId:draft.id,step:0,answers:{}};
+  go('checkup');
+}
 function screenBack(){
+  if(route==='checkup'){go('editor');return;}
   if(route==='summary' && !summarySaved){go('editor');return;}
   if(route==='editor' && step>0){step--;render();return;}
   go(route==='now'?'practices':['summary','editor'].includes(route)?'journal':'now');
@@ -49,7 +56,7 @@ function render(){
   const active=['reading','games'].includes(route)?'now':route==='editor'?'journal':(['practice','quest','riddle'].includes(route)?'practices':route);
   document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.page===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   try{route==='now'?tg?.BackButton?.hide():tg?.BackButton?.show();}catch{}
-  ({now:renderNow,reading:()=>showLibrary(main,()=>openEditor()),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
+  ({now:renderNow,checkup:()=>startCheckup(main,checkupState,()=>go('editor')),reading:()=>showLibrary(main,()=>openEditor()),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
 }
 function go(page){route=page;history.replaceState(null,'',`#${page}`);render();window.scrollTo({top:0,behavior:'instant'});main.focus({preventScroll:true});}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
@@ -103,6 +110,11 @@ function renderEditor(){
   for(const field of [primary,...extra]){const label=document.createElement('label');label.htmlFor=field;label.textContent=field===primary?question:fieldLabels[field];const input=document.createElement('textarea');input.id=field;input.name=field;input.maxLength=4000;input.value=draft[field];input.placeholder=field==='thought'?'Например: «Боюсь, что не справлюсь…»':'Можно коротко. Можно пока не знать.';input.addEventListener('input',()=>{draft[field]=input.value;persistDraft();});(field===primary?$('fields'):details).append(label,input);}
   $('fields').append(details);
   if(step===0||step===2){const field=step===0?'anxiety':'anxietyAfter';const label=document.createElement('label');label.htmlFor=field;label.textContent=step===0?'Насколько сильна тревога сейчас?':'Тревога после записи — если хочется отметить';const input=document.createElement('input');input.type='range';input.id=field;input.min=0;input.max=10;input.value=draft[field]??5;const value=document.createElement('p');value.id='score-value';value.className='muted small';const update=()=>{value.textContent=draft[field]===null?'Не отмечено · шкала от 0 до 10':`${draft[field]} из 10`;input.setAttribute('aria-valuetext',draft[field]===null?'Не отмечено':`${draft[field]} из 10`);};input.oninput=()=>{draft[field]=Number(input.value);update();persistDraft();};const skip=document.createElement('button');skip.type='button';skip.className='text-button';skip.textContent='Не отмечать';skip.onclick=()=>{draft[field]=null;update();persistDraft();};details.append(label,input,value,skip);update();}
+  if(step===steps.length-1){
+    const link=document.createElement('button');link.type='button';link.className='text-button checkup-link';
+    link.textContent='полный чекап твоего психоэмоционального состояния';
+    link.onclick=openCheckup;panel.querySelector('.question-glass').append(link);
+  }
   $('entry-form').onsubmit=e=>{
     e.preventDefault();
     if(step<steps.length-1){step++;renderEditorOnly();return;}
@@ -183,6 +195,6 @@ function renderSettings(){
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
   $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
   action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены все записи, черновик и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.3.1 · Ночная сакура</p>';main.append(about);
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.4 · Ночная сакура</p>';main.append(about);
 }
 route=['now','journal','practices','settings','reading','games'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();
