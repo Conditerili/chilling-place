@@ -220,3 +220,13 @@ body[data-screen=now] #screen-title{font:500 clamp(19px,5.4vw,29px)/1 Georgia,se
 @keyframes lake-drop{0%,86%{opacity:0;transform:translateY(-34px)}90%{opacity:.9}99%{transform:translateY(-2px);opacity:.95}100%{transform:translateY(0) scaleY(.4);opacity:0}}
 [data-motion=reduced] .lake-face *,[data-motion=reduced] .water-orb.water-touch:after{animation:none}
 @media(prefers-reduced-motion:reduce){.lake-face *,.water-orb.water-touch:after{animation:none}}
+
+/* Keep the translucent surfaces, but avoid resampling moving petals
+   behind every card and the fixed navigation on touch devices. */
+@media (pointer: coarse), (max-width: 700px) {
+  .hero, .tile, .panel, .entry, dialog, .bottom-nav, .garden-link,
+  .question-glass, .summary-glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
