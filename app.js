@@ -1,3 +1,4 @@
+import {attachWaterPlayer} from './water-player.js?v=1';
 import {startCheckup} from './check-in.js?v=1';
 import {showLibrary,showGardenGame} from './garden-rooms.js?v=3';
 import {createStore, uid, FIELDS} from './storage.js?v=6.2';
@@ -49,7 +50,7 @@ function screenBack(){
 action('screen-back',screenBack);
 function render(){
   document.body.dataset.screen=route;
-  $('screen-title').textContent=({editor:'Дневник мыслей',summary:'Твоя запись'})[route]||'';
+  $('screen-title').textContent=({now:'CHILLING PLACE',editor:'Дневник мыслей',summary:'Твоя запись'})[route]||'';
   $('screen-back').textContent=route==='now'?'☰':'←';
   $('screen-back').setAttribute('aria-label',route==='now'?'Открыть практики':'Назад');
   main.replaceChildren();main.classList.remove('fade');void main.offsetWidth;main.classList.add('fade');
@@ -73,12 +74,15 @@ function renderNow(){
     ['reading','❧','Литература','Короткое чтение у озера'],
     ['games','✾','Мини-игры','Сад на воде']
   ];
-  main.innerHTML = `<section class="garden-home"><h1>CHILLING<br>PLACE</h1><p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
+  main.innerHTML = `<section class="garden-home"><h1 class="sr-brand">CHILLING PLACE</h1>
+    <button class="water-orb" id="water-orb" type="button" aria-controls="water-player" aria-expanded="false" aria-label="963 герца — открыть мини-плеер"><span class="water-surface" aria-hidden="true"></span><span class="water-type">963<small>герца</small></span></button>
+    <section class="panel water-player" id="water-player" aria-label="Музыка 963 Гц" hidden><div class="water-head"><label for="water-track">Музыка у воды</label><button type="button" class="water-close icon-button" aria-label="Закрыть плеер">×</button></div><select id="water-track"></select><div class="water-media"></div><a target="_blank" rel="noopener noreferrer"></a></section><p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
     <div class="garden-menu">${destinations.map(([id,icon,title,detail]) =>
       `<button class="garden-link" id="${id}"><span aria-hidden="true">${icon}</span><span><strong>${title}</strong><small>${detail}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div></section>
     <section class="panel check-in"><h2>Как ты сейчас?</h2><div class="moods" id="moods"></div>
     <p class="small muted" id="mood-note">Можно просто заметить своё состояние.</p>
     <button class="quiet" id="support">Мне тревожно</button></section>`;
+  attachWaterPlayer($('water-orb'),$('water-player'));
   action('reading',()=>go('reading'));action('games',()=>go('games'));
   action('distract',()=>go('riddle'));action('records',()=>go('journal'));
   for(const name of ['Спокойно','Тревожно','Усталость','Грустно','Не знаю']){const b=document.createElement('button');b.className='mood';b.textContent=name;b.setAttribute('aria-pressed',String(mood===name));b.onclick=()=>{mood=name;renderNowOnlyMoods();};$('moods').append(b);}
