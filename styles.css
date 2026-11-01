@@ -95,3 +95,28 @@ body::after{z-index:-1;background:#ffe9f105}
 @keyframes drift{to{transform:translate(38px,105vh) rotate(220deg)}}
 [data-motion=reduced] .petals{display:none}@media(prefers-reduced-motion:reduce){.petals{display:none}}
 @media(max-width:600px){.masthead{margin-bottom:15px}.garden-home{padding-top:16px}}
+
+/* Moonlit lake, full-bleed in Telegram's viewport. */
+body::before{background:linear-gradient(180deg,#150a1310,#170d1733 55%,#16081238),url("sakura-night.webp") center/cover no-repeat;background-color:#170e19}
+@media(min-aspect-ratio:1/1){body::before{background-size:cover,auto 100%}}
+.shell{max-width:540px}.masthead{margin:0;gap:10px}.masthead .icon-button{background:#200e1cb5;color:#ffaace;border:0;font-size:20px}.masthead #screen-title{font:21px Georgia,serif;text-shadow:0 2px 7px #160716}
+.garden-home{padding:clamp(55px,12svh,140px) 0 16px}
+.garden-home h1{position:relative;isolation:isolate;font:500 clamp(40px,6.3svh,67px)/.98 Georgia,serif;color:#ffc4d5;letter-spacing:.04em}
+.garden-home h1:after{content:"";position:absolute;inset:25% 16% -2%;border-bottom:1px solid #ffb1c9;border-right:1px solid #ffb1c9;border-radius:50%;transform:rotate(-11deg);z-index:-1}
+.garden-tag{font:500 11px/1.5 system-ui;letter-spacing:.36em;color:#fff0f5;margin:22px 0 8px}
+.divider{display:flex;align-items:center;justify-content:center;gap:7px;color:#ffa7c3;margin:0 0 17px}.divider:after,.divider:before{content:"";width:24%;height:1px;background:linear-gradient(90deg,transparent,#ef9bbf)}.divider:after{transform:rotate(180deg)}
+.garden-menu{gap:10px}.garden-link,.summary-actions button{background:linear-gradient(140deg,#341925e8,#231620ee 52%,#56243bce);box-shadow:inset 0 -2px 8px #f881ab82,0 4px 13px #1809129e;border:1px solid #ee93b3ab}
+.garden-link:first-child{border-color:#ffbfd3;box-shadow:inset 0 -2px 12px #ff89afae,0 0 10px #ee669a69}
+.garden-link strong{font:500 18px/1.2 system-ui}.garden-link small{margin-top:3px}.garden-link{padding:11px 20px}
+.check-in{margin-top:16svh}.bottom-nav{max-width:465px;display:flex;justify-content:space-around}.bottom-nav button{flex:1}
+body:is([data-screen=editor],[data-screen=summary]) :is(.bottom-nav,.footer){display:none}
+.editor-intro{text-align:center;padding-top:clamp(20px,5svh,50px);text-shadow:0 2px 8px #100911}.editor-intro h1{font:32px/1.12 Georgia,serif;letter-spacing:0;margin:14px 0}.editor-intro p{color:#ffe2ec}
+.water-flower{position:relative;display:grid;place-items:center;width:160px;height:83px;margin:auto;font-size:54px;filter:drop-shadow(0 0 12px #f485bd)}.water-flower:before{content:"";position:absolute;bottom:0;width:100%;height:20px;border-radius:50%;border:3px double #f6a2c7;box-shadow:0 0 0 6px #eb6d9c33}
+.question-glass,.summary-glass{background:linear-gradient(140deg,#301c29e8,#231620dc 60%,#4d2939e3);border:1px solid #e993b292;box-shadow:inset 0 -3px 14px #e1799d54,0 10px 25px #08040b60;border-radius:27px;padding:22px;backdrop-filter:blur(9px)}
+.step-pill{display:table;margin:auto;padding:2px 15px;border-radius:20px;background:#f1a0bd;color:#26121e;font-weight:700}
+#fields>label{font:25px/1.15 Georgia,serif;text-align:center;margin:17px auto 22px;display:block;max-width:330px}
+#fields>textarea{min-height:90px;border-radius:17px}.concept-cta{display:block;width:80%;margin:22px auto 0;background:linear-gradient(155deg,#f59aba,#c2668a 55%,#ee9ab6);border:1px solid #ffcadb;box-shadow:inset 0 0 13px #ffb5d3,0 0 16px #d7659640}
+#draft-status{text-align:center}.summary-glass{margin:clamp(30px,7svh,75px) 0 0}.summary-glass h1{font:500 22px/1.4 system-ui;letter-spacing:0;border-bottom:1px solid #e19bb63d;padding-bottom:14px}.summary-glass h1 span{float:right}
+#summary-lines section{position:relative;padding-left:32px;margin:22px 0}#summary-lines section:before{content:attr(data-icon);position:absolute;left:0;color:#ffadcf;font-size:22px}#summary-lines h2{font:600 17px/1.4 system-ui;margin:0 0 5px}#summary-lines p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#ffe9f2}
+.summary-actions{display:flex;gap:8px;margin-top:24px}.summary-actions button{flex:1;padding:10px 5px}body[data-screen=summary] .concept-cta{width:95%}
+.garden-link svg{width:34px;height:34px;vertical-align:middle;filter:drop-shadow(0 0 5px #e5659577)}.bottom-nav svg{width:23px;height:23px;display:block;margin:auto}

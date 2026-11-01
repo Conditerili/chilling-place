@@ -10,3 +10,13 @@ test('import is validated atomically, deduplicates, and preserves id conflicts',
 test('export/import round trip and skipped scores',()=>{const {store}=setup();store.save({id:'a',thought:'<script>test</script> 🌿',anxiety:null});const other=setup().store;other.import(store.export());assert.equal(other.read().entries[0].thought,'<script>test</script> 🌿');assert.equal(other.read().entries[0].anxiety,null);});
 test('saving clears draft atomically; clear also removes legacy backup',()=>{const {store}=setup({[LEGACY_KEY]:'[]'});store.draft({id:'a',thought:'hello'});store.save({id:'a',thought:'hello'});assert.equal(store.read().draft,null);store.clear();assert.equal(store.read().entries.length,0);});
 test('import restores a missing draft but never replaces a current one',()=>{const source=setup().store;source.draft({id:'source',thought:'draft from backup'});const target=setup().store;target.import(source.export());assert.equal(target.read().draft.thought,'draft from backup');target.draft({id:'local',thought:'local draft'});target.import(source.export());assert.equal(target.read().draft.thought,'local draft');});
+
+test('a response to the last question alone survives saving and reopening', () => {
+  const {store, backend} = setup();
+  const entry = {id:'last-only', alternative:'Можно перенести встречу'};
+  store.draft(entry);
+  store.save(entry);
+  const reopened = createStore(backend).read();
+  assert.equal(reopened.draft, null);
+  assert.equal(reopened.entries[0].alternative, entry.alternative);
+});

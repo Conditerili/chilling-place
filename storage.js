@@ -40,7 +40,7 @@ export function createStore(storage) {
     draft(entry) { const state=read(); state.draft=entry ? normalizeEntry(entry) : null; write(state); },
     save(value) {
       const entry=normalizeEntry(value);
-      if (!entry.situation.trim() && !entry.thought.trim()) fail('Опиши ситуацию или мысль — достаточно одного поля.');
+      if (!FIELDS.some(field=>entry[field].trim())) fail('Ответь хотя бы на один вопрос.');
       if (FIELDS.some(f=>entry[f].length>4000)) fail('В одном поле можно сохранить до 4 000 символов. Сократи текст или раздели запись.');
       const state=read(); const index=state.entries.findIndex(e=>e.id===entry.id);
       entry.updatedAt=new Date().toISOString();

@@ -1,4 +1,4 @@
-import {createStore, uid, FIELDS} from './storage.js?v=6.0.0';
+import {createStore, uid, FIELDS} from './storage.js?v=6.2';
 import {practices, quests, riddles} from './content.js?v=6.0.0';
 
 const $=id=>document.getElementById(id);
@@ -19,7 +19,7 @@ function applyTheme(){
   document.querySelector('meta[name=theme-color]').content='#100b13';
 }
 applyTheme();media.addEventListener?.('change',applyTheme);
-try {tg?.ready();tg?.expand();tg?.onEvent('themeChanged',applyTheme);tg?.BackButton?.onClick(()=>go(route==='editor'?'journal':'now'));}catch{}
+try {tg?.ready();tg?.expand();tg?.onEvent('themeChanged',applyTheme);tg?.BackButton?.onClick(screenBack);}catch{}
 function report(e){$('notice').textContent=e.message||String(e);$('notice').hidden=false;}
 function clearNotice(){$('notice').hidden=true;}
 function toast(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,4500);}
@@ -32,12 +32,23 @@ function confirmAction(title,text){return new Promise(resolve=>{
   $('confirm-ok').onclick=()=>finish(true);$('confirm-cancel').onclick=()=>finish(false);
   dialog.oncancel=e=>{e.preventDefault();finish(false);};dialog.showModal();
 });}
+let summaryEntry=null, summarySaved=false;
+function screenBack(){
+  if(route==='summary' && !summarySaved){go('editor');return;}
+  if(route==='editor' && step>0){step--;render();return;}
+  go(route==='now'?'practices':['summary','editor'].includes(route)?'journal':'now');
+}
+action('screen-back',screenBack);
 function render(){
+  document.body.dataset.screen=route;
+  $('screen-title').textContent=({editor:'Дневник мыслей',summary:'Твоя запись'})[route]||'';
+  $('screen-back').textContent=route==='now'?'☰':'←';
+  $('screen-back').setAttribute('aria-label',route==='now'?'Открыть практики':'Назад');
   main.replaceChildren();main.classList.remove('fade');void main.offsetWidth;main.classList.add('fade');
   const active=route==='editor'?'journal':(['practice','quest','riddle'].includes(route)?'practices':route);
   document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.page===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   try{route==='now'?tg?.BackButton?.hide():tg?.BackButton?.show();}catch{}
-  ({now:renderNow,journal:renderJournal,editor:renderEditor,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
+  ({now:renderNow,journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
 }
 function go(page){route=page;history.replaceState(null,'',`#${page}`);render();window.scrollTo({top:0,behavior:'instant'});main.focus({preventScroll:true});}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
@@ -47,13 +58,12 @@ window.addEventListener('storage',e=>{if(e.key==='chillingPlace.v2'){if(route===
 
 function renderNow(){
   const destinations = [
-    ['write','✿','Дневник мыслей','Разобраться в мыслях'],
-    ['small-step','☷','Задачи','Один маленький шаг'],
-    ['distract','☾','Отвлечься','Сменить фокус и выдохнуть'],
-    ['records','▤','Мои записи','История и заметки']
+    ['write','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg>','Терапия','Разобраться в мыслях'],
+    ['small-step','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M11 7H7v21h18V7h-5M12 5h7v4h-7zM10 17l3 3 7-7"/></svg>','Задачи','Поддержать баланс'],
+    ['distract','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20v-5a12 12 0 0 1 24 0v5M4 17h5v10H6q-2 0-2-2zM28 17h-5v10h3q2 0 2-2z"/></svg>','Отвлечься','Сменить фокус и выдохнуть'],
+    ['records','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 8Q8 3 2 6v20q7-3 14 1 7-4 14-1V6q-7-3-14 2Zm0 0v19"/></svg>','Мои записи','История и заметки']
   ];
-  main.innerHTML = `<section class="garden-home"><p class="eyebrow">YOUR PERSONAL SAFE SPACE</p>
-    <h1>CHILLING PLACE</h1><p class="welcome">Можно просто побыть здесь.</p>
+  main.innerHTML = `<section class="garden-home"><h1>CHILLING<br>PLACE</h1><p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
     <div class="garden-menu">${destinations.map(([id,icon,title,detail]) =>
       `<button class="garden-link" id="${id}"><span aria-hidden="true">${icon}</span><span><strong>${title}</strong><small>${detail}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div></section>
     <section class="panel check-in"><h2>Как ты сейчас?</h2><div class="moods" id="moods"></div>
@@ -78,19 +88,51 @@ const steps = [
 ];
 function renderEditor(){
   if(!draft)draft=newDraft();
-  main.append(heading('ЛИЧНЫЙ ДНЕВНИК','Разберём одну мысль','Можно ответить только на один вопрос. Остальное — по желанию.'));
+  main.innerHTML='<div class="editor-intro"><div class="water-flower" aria-hidden="true">🌸</div><h1>Разберём одну мысль</h1><p>Спокойно ответь на несколько вопросов.<br>Можно начать с одного.</p></div>';
   const panel=document.createElement('section');panel.className='panel';
-  panel.innerHTML=`<div class="step-label"><span id="step-name"></span><span>${step+1} / ${steps.length}</span></div><progress max="${steps.length}" value="${step+1}" aria-label="Шаг дневника"></progress><form id="entry-form"><div id="fields"></div><p class="small muted" id="draft-status" role="status">Текст сохраняется как черновик при вводе.</p><div class="actions"><button type="button" class="secondary" id="previous">Назад</button><button type="button" class="quiet" id="next">Дальше →</button></div><button class="primary" type="submit" style="width:100%;margin-top:12px">Сохранить запись</button></form>`;
-  main.append(panel);$('step-name').textContent=steps[step][0];
+  panel.className='journal-form';
+  panel.innerHTML=`<form id="entry-form"><div class="question-glass"><span class="step-pill">${step+1} / ${steps.length}</span><div id="fields"></div></div><button class="primary concept-cta" type="submit">${step===steps.length-1?'Твоя запись':'Далее'} →</button><p class="small muted" id="draft-status" role="status">Черновик сохраняется на этом устройстве.</p></form>`;
+  main.append(panel);
   const [,primary,question,extra]=steps[step];
   const details=document.createElement('details');
   const summary=document.createElement('summary');summary.textContent='Дополнить запись';details.append(summary);
   for(const field of [primary,...extra]){const label=document.createElement('label');label.htmlFor=field;label.textContent=field===primary?question:fieldLabels[field];const input=document.createElement('textarea');input.id=field;input.name=field;input.maxLength=4000;input.value=draft[field];input.placeholder=field==='thought'?'Например: «Боюсь, что не справлюсь…»':'Можно коротко. Можно пока не знать.';input.addEventListener('input',()=>{draft[field]=input.value;persistDraft();});(field===primary?$('fields'):details).append(label,input);}
   $('fields').append(details);
   if(step===0||step===2){const field=step===0?'anxiety':'anxietyAfter';const label=document.createElement('label');label.htmlFor=field;label.textContent=step===0?'Насколько сильна тревога сейчас?':'Тревога после записи — если хочется отметить';const input=document.createElement('input');input.type='range';input.id=field;input.min=0;input.max=10;input.value=draft[field]??5;const value=document.createElement('p');value.id='score-value';value.className='muted small';const update=()=>{value.textContent=draft[field]===null?'Не отмечено · шкала от 0 до 10':`${draft[field]} из 10`;input.setAttribute('aria-valuetext',draft[field]===null?'Не отмечено':`${draft[field]} из 10`);};input.oninput=()=>{draft[field]=Number(input.value);update();persistDraft();};const skip=document.createElement('button');skip.type='button';skip.className='text-button';skip.textContent='Не отмечать';skip.onclick=()=>{draft[field]=null;update();persistDraft();};details.append(label,input,value,skip);update();}
-  $('previous').textContent=step===0?'К дневнику':'← Назад';$('next').hidden=step===steps.length-1;
-  action('previous',()=>{if(step===0)go('journal');else{step--;renderEditorOnly();}});action('next',()=>{step++;renderEditorOnly();});
-  $('entry-form').onsubmit=e=>{e.preventDefault();try{store.save(draft);const saved={...draft};draft=null;clearNotice();go('journal');main.replaceChildren(heading('ЛИЧНЫЙ ДНЕВНИК','Твоя запись','Сохранена на этом устройстве.'),entryCard(saved));main.querySelector('details').open=true;const historyButton=document.createElement('button');historyButton.className='primary';historyButton.textContent='Мои записи';historyButton.onclick=()=>go('journal');main.append(historyButton);toast('Запись сохранена. Можно выдохнуть.');}catch(err){report(err);$('notice').scrollIntoView({block:'start'});}};
+  $('entry-form').onsubmit=e=>{
+    e.preventDefault();
+    if(step<steps.length-1){step++;renderEditorOnly();return;}
+    if(!FIELDS.some(key=>draft[key]?.trim())){toast('Добавь хотя бы одну мысль для записи.');return;}
+    summaryEntry={...draft};summarySaved=false;go('summary');
+  };
+}
+function renderSummary(){
+  const groups=[
+    ['◎','Суть мысли',['thought','situation','emotion']],
+    ['⚖','Факты и предположения',['facts','against']],
+    ['♧','Другой возможный исход',['alternative','nextStep']]
+  ];
+  main.innerHTML='<article class="summary-glass"><h1>✧　Твоя запись <span aria-hidden="true">🌸</span></h1><div id="summary-lines"></div></article><div class="summary-actions"><button id="save-summary" class="secondary">♡　Сохранить</button><button id="share-summary" class="secondary">↗　Поделиться</button></div><button id="view-history" class="primary concept-cta">К моим записям →</button>';
+  const parts=[];
+  for(const [symbol,title,keys] of groups){
+    const section=document.createElement('section'),label=document.createElement('h2'),value=document.createElement('p');
+    label.textContent=title;section.dataset.icon=symbol;
+    const answer=keys.map(key=>summaryEntry[key]?.trim()).filter(Boolean).join('\n');
+    value.textContent=answer||'Без ответа';section.append(label,value);$('summary-lines').append(section);
+    if(answer)parts.push(title+'\n'+answer);
+  }
+  const save=$('save-summary');
+  const savedState=()=>{save.disabled=summarySaved;save.textContent=summarySaved?'✓　Сохранено':'♡　Сохранить';};
+  savedState();save.onclick=()=>{try{store.save(summaryEntry);draft=null;summarySaved=true;savedState();clearNotice();toast('Запись сохранена.');}catch(error){report(error);}};
+  action('view-history',()=>go('journal'));
+  action('share-summary',async()=>{
+    const text=parts.join('\n\n');
+    try{
+      if(navigator.share){await navigator.share({title:'Твоя запись',text});return;}
+      if(navigator.clipboard){await navigator.clipboard.writeText(text);toast('Текст записи скопирован.');return;}
+    }catch(error){if(error.name==='AbortError')return;}
+    window.prompt('Скопируй текст записи',text);
+  });
 }
 function renderEditorOnly(){main.replaceChildren();renderEditor();main.focus();window.scrollTo(0,0);}
 function persistDraft(){try{store.draft(draft);$('draft-status').textContent='Черновик сохранён на этом устройстве.';}catch(e){$('draft-status').textContent='Черновик не сохранён. Не закрывай страницу.';report(e);}}
@@ -106,7 +148,7 @@ function renderJournal(){
   const paint=()=>{list.replaceChildren();const found=state.entries.slice().reverse().filter(e=>FIELDS.some(f=>e[f].toLocaleLowerCase().includes(search.toLocaleLowerCase())));const count=document.createElement('p');count.className='small muted';count.textContent=`Записей: ${found.length}`;list.append(count);for(const entry of found)list.append(entryCard(entry));};input.oninput=()=>{search=input.value;paint();};paint();
 }
 function entryCard(entry){
-  const card=document.createElement('article');card.className='entry';const top=document.createElement('div');top.className='entry-head';const date=document.createElement('span');date.textContent=dateText(entry);top.append(date);if(entry.anxiety!==null){const badge=document.createElement('span');badge.className='badge';badge.textContent=`Тревога ${entry.anxiety}/10`;top.append(badge);}const preview=document.createElement('p');preview.className='entry-preview';preview.textContent=(entry.thought||entry.situation||'Запись без текста').slice(0,180);
+  const card=document.createElement('article');card.className='entry';const top=document.createElement('div');top.className='entry-head';const date=document.createElement('span');date.textContent=dateText(entry);top.append(date);if(entry.anxiety!==null){const badge=document.createElement('span');badge.className='badge';badge.textContent=`Тревога ${entry.anxiety}/10`;top.append(badge);}const preview=document.createElement('p');preview.className='entry-preview';preview.textContent=(entry.thought||entry.situation||FIELDS.map(key=>entry[key]).find(value=>value?.trim())||'Запись без текста').slice(0,180);
   const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Открыть запись ↓';const body=document.createElement('dl');for(const field of FIELDS){if(!entry[field])continue;const term=document.createElement('dt');term.textContent=fieldLabels[field];const value=document.createElement('dd');value.textContent=entry[field];body.append(term,value);}if(entry.anxietyAfter!==null){const p=document.createElement('p');p.textContent=`Тревога после: ${entry.anxietyAfter}/10`;body.append(p);}details.append(summary,body);
   const actions=document.createElement('div');actions.className='actions';const edit=document.createElement('button');edit.className='secondary';edit.textContent='Изменить';edit.onclick=()=>openEditor(entry);const remove=document.createElement('button');remove.className='text-button';remove.textContent='Удалить';remove.onclick=async()=>{if(await confirmAction('Удалить запись?','Это действие нельзя отменить. Другие записи останутся.'))attempt(()=>{store.remove(entry.id);if(draft?.id===entry.id)draft=null;render();toast('Запись удалена.');});};actions.append(edit,remove);details.append(actions);card.append(top,preview,details);return card;
 }
@@ -137,6 +179,6 @@ function renderSettings(){
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
   $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
   action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены все записи, черновик и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.1 · Ночная сакура</p>';main.append(about);
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.2 · Ночная сакура</p>';main.append(about);
 }
 route=['now','journal','practices','settings'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();

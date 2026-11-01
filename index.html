@@ -7,26 +7,28 @@
   <meta name="description" content="Твоё место, чтобы выдохнуть. Короткие практики, дневник мыслей и маленькие шаги без давления.">
   <title>CHILLING PLACE · Твоё место, чтобы выдохнуть</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%23665b91'/%3E%3Cpath d='M18 38Q18 15 46 18Q46 46 22 42M23 42L38 27' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=6.0.1-garden2">
+  <link rel="stylesheet" href="styles.css?v=6.0.1-garden3">
   <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
-  <script type="module" src="app.js?v=6.1"></script>
+  <script type="module" src="app.js?v=6.2"></script>
 </head>
 <body>
   <a class="skip" href="#content">К содержимому</a>
   <div class="petals" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="shell">
     <header class="masthead">
-      <a class="wordmark" href="#now" aria-label="CHILLING PLACE — главная"><span class="brand-icon" aria-hidden="true">✳</span><span>CHILLING<br>PLACE<span class="brand-dot">.</span></span></a>
-      <button class="icon-button" id="settings-button" aria-label="Настройки">⚙</button>
+      <button class="icon-button" id="screen-back" aria-label="Назад">←</button>
+      <span id="screen-title"></span>
+      <button class="icon-button" id="settings-button" aria-label="Настройки">•••</button>
     </header>
     <div id="notice" class="notice" role="alert" hidden></div>
     <main id="content" tabindex="-1"></main>
     <footer class="footer">В своём темпе. На своей стороне.<br><button class="text-button" id="about-button">О поддержке и личных данных</button></footer>
   </div>
   <nav class="bottom-nav" aria-label="Основная навигация">
-    <button data-page="now"><span aria-hidden="true">◉</span>Сейчас</button>
-    <button data-page="journal"><span aria-hidden="true">▤</span>Дневник</button>
-    <button data-page="practices"><span aria-hidden="true">✳</span>Практики</button>
+    <button data-page="now"><span aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="m3 15 13-11 13 11M7 13v15h7v-8h5v8h6V13"/></svg></span>Сейчас</button>
+    <button data-page="journal"><span aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 8Q8 3 2 6v20q7-3 14 1 7-4 14-1V6q-7-3-14 2Zm0 0v19"/></svg></span>Дневник</button>
+    <button data-page="practices"><span aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg></span>Практики</button>
+    <button data-page="settings"><span aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M22 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM4 28q0-10 12-10t12 10Z"/></svg></span>Профиль</button>
   </nav>
   <div id="toast" role="status" class="toast" hidden></div>
   <dialog id="confirm-dialog" aria-labelledby="confirm-title">
