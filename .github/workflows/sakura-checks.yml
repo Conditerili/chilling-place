@@ -1,0 +1,26 @@
+name: Sakura Night checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [design/sakura-v6]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check app.js
+          node --check storage.js
+          node --check content.js
+      - name: Automated tests
+        run: npm test
+      - name: Validate Sakura Night assets
+        run: |
+          test -s styles.css
+          grep -q 'Sakura shoreline artwork' styles.css
+          grep -q 'styles.css?v=6.0.1' index.html
