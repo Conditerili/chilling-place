@@ -16,7 +16,7 @@ function applyTheme(){
   const dark=settings.theme==='dark'||(settings.theme==='system'&&(tg?.colorScheme ? tg.colorScheme==='dark' : media.matches));
   document.documentElement.dataset.theme=dark?'dark':'light';
   document.documentElement.dataset.motion=settings.reducedMotion?'reduced':'auto';
-  document.querySelector('meta[name=theme-color]').content=dark?'#211f29':'#f6f3ee';
+  document.querySelector('meta[name=theme-color]').content='#100b13';
 }
 applyTheme();media.addEventListener?.('change',applyTheme);
 try {tg?.ready();tg?.expand();tg?.onEvent('themeChanged',applyTheme);tg?.BackButton?.onClick(()=>go(route==='editor'?'journal':'now'));}catch{}
