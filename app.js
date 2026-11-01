@@ -1,4 +1,4 @@
-import {showLibrary,showGardenGame} from './garden-rooms.js?v=1';
+import {showLibrary,showGardenGame} from './garden-rooms.js?v=2';
 import {createStore, uid, FIELDS} from './storage.js?v=6.2';
 import {practices, quests, riddles} from './content.js?v=6.0.0';
 
@@ -49,7 +49,7 @@ function render(){
   const active=['reading','games'].includes(route)?'now':route==='editor'?'journal':(['practice','quest','riddle'].includes(route)?'practices':route);
   document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.page===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   try{route==='now'?tg?.BackButton?.hide():tg?.BackButton?.show();}catch{}
-  ({now:renderNow,reading:()=>showLibrary(main),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
+  ({now:renderNow,reading:()=>showLibrary(main,()=>openEditor()),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
 }
 function go(page){route=page;history.replaceState(null,'',`#${page}`);render();window.scrollTo({top:0,behavior:'instant'});main.focus({preventScroll:true});}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
@@ -183,6 +183,6 @@ function renderSettings(){
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
   $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
   action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены все записи, черновик и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.2 · Ночная сакура</p>';main.append(about);
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.3.1 · Ночная сакура</p>';main.append(about);
 }
 route=['now','journal','practices','settings','reading','games'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();

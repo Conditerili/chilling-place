@@ -24,8 +24,9 @@ const shelves={
     ['Позыв можно представить волной. Если хочется, понаблюдай, как меняется одно ощущение: например, напряжение в ладонях.','Образ волны · по материалам VA',va]
   ]
 };
-export function showLibrary(main){
-  main.innerHTML='<p class="eyebrow">ПОЛКА У ОЗЕРА</p><h1>Литература</h1><p>Выбери тему и прочитай одну короткую карточку.</p><div class="moods" role="group" aria-label="Темы"></div><article class="panel reading-card" aria-live="polite"></article><button class="secondary">Следующая карточка →</button>';
+export function showLibrary(main,openDiary){
+  main.innerHTML='<p class="eyebrow">ПОЛКА У ОЗЕРА</p><h1>Литература</h1><p>Выбери тему и прочитай одну короткую карточку.</p><div class="moods" role="group" aria-label="Темы"></div><article class="panel reading-card" aria-live="polite"></article><div class="actions"><button class="secondary">Следующая карточка →</button><button class="primary" type="button">Записать свою мысль</button></div>';
+  main.querySelector('.primary').onclick=openDiary;
   const topics=main.querySelector('.moods'),card=main.querySelector('article');
   let topic=Object.keys(shelves)[0],index=0;
   function paint(){
