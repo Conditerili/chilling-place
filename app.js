@@ -4,7 +4,7 @@ import {showLibrary,showGardenGame} from './garden-rooms.js?v=3';
 import {createStore, uid, FIELDS} from './storage.js?v=7.0.0';
 import {practices, quests, riddles} from './content.js?v=7.0.0';
 import {templates,entryLabels} from './wellbeing.js?v=7.0.0';
-import {createWellbeingUI} from './cozy-ui.js?v=7.0.0';
+import {createWellbeingUI} from './cozy-ui.js?v=7.0.1-sakura';
 
 const $=id=>document.getElementById(id);
 const main=$('content');
@@ -22,7 +22,7 @@ function applyTheme(){
   const dark=settings.theme==='dark'||(settings.theme==='system'&&(tg?.colorScheme ? tg.colorScheme==='dark' : media.matches));
   document.documentElement.dataset.theme=dark?'dark':'light';
   document.documentElement.dataset.motion=settings.reducedMotion?'reduced':'auto';
-  const color=dark?'#202923':'#f6f3eb';
+  const color='#100b13';
   document.querySelector('meta[name=theme-color]').content=color;
   try{tg?.setHeaderColor?.(color);tg?.setBackgroundColor?.(color);}catch{}
 }
@@ -192,7 +192,7 @@ function renderSettings(){
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
   $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. В истории теперь состояний: ${store.read().checkins.length}, практик: ${store.read().sessions.length}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
   action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены записи, черновик, состояния, история практик, маленькие шаги и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 7.0.0 · Уютное личное место</p>';main.append(about);
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 7.0.1 · Сакура</p>';main.append(about);
 }
 route=['now','journal','practices','settings','reading','games','templates','insights','support'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();
 

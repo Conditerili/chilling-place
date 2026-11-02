@@ -15,10 +15,13 @@ export function createWellbeingUI({main,store,go,openEditor,startPractice,toast,
   const run=fn=>{try{return fn();}catch(error){report(error);return null;}};
   function cleanup(){if(recording){recording.abort();recording=null;}clearTimeout(recognitionTimer);}
   function room(state){
-    const {leaves,lit,points}=roomProgress(state),node=el('section','room-panel');
-    // Original code-native illustration. Only bounded numeric values enter its SVG.
-    node.innerHTML=`<svg class="room-art" role="img" aria-label="Уютный уголок с растением у окна" viewBox="0 0 560 220"><defs><linearGradient id="room-sky" x2="0" y2="1"><stop stop-color="#d9e7dc"/><stop offset="1" stop-color="#f0e8d7"/></linearGradient></defs><rect width="560" height="220" rx="26" fill="var(--room-wall)"/><path d="M0 181H560V220H0Z" fill="var(--room-floor)"/><rect x="194" y="20" width="164" height="144" rx="76" fill="url(#room-sky)"/><path d="M276 20V162M195 97H357" stroke="var(--room-wall)" stroke-width="7"/><circle cx="317" cy="58" r="17" fill="#f4d89a"/><path d="M196 133Q225 95 260 132T356 128V164H196Z" fill="#9eb5a1"/><path d="M169 168H381" stroke="var(--room-wood)" stroke-width="8" stroke-linecap="round"/><path d="M75 181H174L161 210H91Z" fill="#bc947b"/><path d="M124 183Q130 140 120 107" fill="none" stroke="#648168" stroke-width="4"/>${Array.from({length:leaves},(_,i)=>{const y=164-i*8,flip=i%2?-1:1;return `<ellipse cx="${124+flip*12}" cy="${y}" rx="19" ry="8" fill="${i%2?'#73967a':'#91ad8a'}" transform="rotate(${flip*30} ${124+flip*12} ${y})"/>`;}).join('')}<path d="M431 181V114M413 183H451" stroke="var(--room-wood)" stroke-width="5" stroke-linecap="round"/><path d="M405 115L418 76H443L457 115Z" fill="${lit?'#e8c884':'#b9b19d'}"/>${lit?'<ellipse cx="431" cy="146" rx="35" ry="30" fill="#ecd49b" opacity=".22"/>':''}<path d="M386 203H485" stroke="var(--room-wood)" stroke-width="7" stroke-linecap="round"/><path d="M390 194H434V201H390Z" fill="#94a5a0"/><path d="M395 185H439V193H395Z" fill="#cdb49b"/></svg>`;
-    const copy=el('div','room-caption');copy.append(el('strong','',points?'Здесь становится чуть уютнее':'Твоё место, чтобы выдохнуть'),el('span','small muted',points?`${points} маленьких действий для себя. Можно возвращаться в любом темпе.`:'После записей появляются листья, после практики загорается лампа. Пропуск дня ничего не меняет.'));node.append(copy);return node;
+    const {leaves,lit,points}=roomProgress(state),node=card('Твой сад');
+    node.classList.add('garden-progress','check-in');node.dataset.lit=String(lit);
+    const branch=el('div','garden-sprig',Array.from({length:leaves},()=> '❀').join(' '));
+    branch.setAttribute('aria-label',`Цветов в саду: ${leaves}`);
+    node.append(branch,el('p','small muted',`${points} маленьких действий для себя. Пропуски дней ничего не меняют.`));
+    if(lit)node.append(el('p','garden-light','✧ В саду горит твой огонёк'));
+    return node;
   }
   function startMood(id){pending={id:uid(),createdAt:new Date().toISOString(),mood:id,emotion:'',contexts:[],note:''};paintCheckin();}
   function paintCheckin(){
@@ -37,8 +40,23 @@ export function createWellbeingUI({main,store,go,openEditor,startPractice,toast,
   function practiceButton(id){const p=practices[id];const b=button('',()=>startPractice(id),'recommendation');b.append(el('span','recommendation-icon',p.symbol),el('span','',p.title),el('small','muted',`${minuteFor(id)} мин`),el('span','muted','↗'));return b;}
   function renderNow(){
     main.replaceChildren();const state=read();if(!state)return;
-    const hour=new Date().getHours(),greeting=hour<12?'Доброе утро':hour<18?'Небольшая пауза':'Добрый вечер';
-    main.append(title('CHILLING PLACE',greeting,'Здесь можно быть в своём темпе.'),room(state));
+  const destinations = [
+    ['write','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg>','Терапия','Разобраться в мыслях'],
+    ['small-step','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M11 7H7v21h18V7h-5M12 5h7v4h-7zM10 17l3 3 7-7"/></svg>','Задачи','Поддержать баланс'],
+    ['distract','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20v-5a12 12 0 0 1 24 0v5M4 17h5v10H6q-2 0-2-2zM28 17h-5v10h3q2 0 2-2z"/></svg>','Отвлечься','Сменить фокус и выдохнуть'],
+    ['records','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 8Q8 3 2 6v20q7-3 14 1 7-4 14-1V6q-7-3-14 2Zm0 0v19"/></svg>','Мои записи','История и заметки'],
+    ['reading','❧','Литература','Короткое чтение у озера'],
+    ['games','✾','Мини-игры','Сад на воде']
+  ];
+    const entrance=el('div');
+    entrance.innerHTML=`<section class="garden-home"><h1 class="sr-brand">CHILLING PLACE</h1>
+    <p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
+    <div class="garden-menu">${destinations.map(([id,icon,title,detail]) =>
+      `<button class="garden-link" id="${id}"><span aria-hidden="true">${icon}</span><span><strong>${title}</strong><small>${detail}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div></section>`;
+    const destinationsById={write:()=>go('templates'),'small-step':()=>go('quest'),distract:()=>go('riddle'),records:()=>go('journal'),reading:()=>go('reading'),games:()=>go('games')};
+    for(const [id,fn] of Object.entries(destinationsById))entrance.querySelector('#'+id).onclick=fn;
+    main.append(entrance.firstElementChild);
+    const hour=new Date().getHours();
     const check=card('Как ты сейчас?','Выбери то, что ближе. Можно пока не знать.');check.classList.add('check-in');
     const grid=el('div','mood-grid');grid.setAttribute('role','group');grid.setAttribute('aria-label','Твоё состояние');
     for(const [id,info] of Object.entries(moods)){const b=button('',()=>startMood(id),'mood-option');b.dataset.tone=info.tone;b.dataset.mood=id;b.setAttribute('aria-pressed',String(pending?.mood===id));b.append(el('span','mood-face',info.icon),el('span','',info.label));grid.append(b);}check.append(grid);
@@ -48,7 +66,7 @@ export function createWellbeingUI({main,store,go,openEditor,startPractice,toast,
     const suggestions=card('Что подойдёт сейчас',recent?`После отметки «${moods[recent.mood].label}». Выбор можно изменить.`:'Короткое действие без обязательств.');
     const durations=el('div','moods duration-filter');durations.setAttribute('role','group');durations.setAttribute('aria-label','Сколько есть времени');const list=el('div','recommendation-list');
     const paint=()=>{list.replaceChildren();let ids=recommendations(recent?.mood,minutes);if(!ids.length)ids=Object.keys(practices).filter(id=>minuteFor(id)===minutes);for(const id of ids.slice(0,3))list.append(practiceButton(id));durations.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.minutes)===minutes)));};
-    for(const [value,label] of [[0,'Любая пауза'],[1,'1 минута'],[3,'3 минуты'],[5,'5 минут']]){const b=button(label,()=>{minutes=value;paint();},'mood');b.dataset.minutes=value;durations.append(b);}suggestions.append(durations,list);paint();main.append(suggestions);
+    for(const [value,label] of [[0,'Любая пауза'],[1,'1 минута'],[3,'3 минуты'],[5,'5 минут']]){const b=button(label,()=>{minutes=value;paint();},'mood');b.dataset.minutes=value;durations.append(b);}suggestions.append(durations,list);paint();main.append(suggestions,room(state));
     const dayEvents=state.care.filter(c=>dayKey(c.createdAt)===dayKey()),quest=card('Маленький шаг на сегодня',quests[new Date().getDate()%quests.length]);
     quest.classList.add('daily-step');quest.append(button(dayEvents.length?'Сегодня ты уже позаботился о себе ✓':'Попробовать маленький шаг',()=>go('quest'),dayEvents.length?'secondary':'primary'));main.append(quest);
     const links=el('div','quick-links');

@@ -26,6 +26,6 @@ jobs:
           test -s styles.css
           test -s sakura-night.webp
           test -s PRODUCT-COMPARISON.md
-          grep -q 'Cozy Place v7' styles.css
-          grep -q 'styles.css?v=7.0.0' index.html
+          grep -q 'Sakura feature extensions' styles.css
+          grep -q 'styles.css?v=7.0.1-sakura' index.html
 

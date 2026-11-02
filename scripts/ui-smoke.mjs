@@ -41,9 +41,9 @@ assert.equal(state().entries.length,1);assert.equal(state().entries[0].template,
 assert.match(content().textContent,/Что из этого хочется взять с собой/);
 clickText('К моим записям');clickText('Календарь и неделя');assert.equal(content().querySelectorAll('.calendar-weekday').length,7);assert.match(content().textContent,/Личная заметка/);assert.equal(content().querySelectorAll('script').length,0);assert.match(content().textContent,/Завтра ещё раз/);
 nav('practices');clickText('Мягкое дыхание');for(let n=0;n<4;n++)clickText('Дальше');assert.equal(state().sessions.length,1);clickText('Стало легче');clickText('Без изменений');assert.equal(state().sessions.length,1);assert.equal(state().sessions[0].feedback,'same');clickText('Стало легче');
-clickText('Вернуться в своё место');assert.match(content().querySelector('.room-art').innerHTML,/#e8c884/);
+clickText('Вернуться в своё место');assert.equal(content().querySelector('.garden-progress').dataset.lit,'true');
 clickText('Попробовать маленький шаг');clickText('Сделал');assert.equal(state().care.length,1);
 clickText('Попросить поддержки');clickText('Поделиться карточкой');await new Promise(resolve=>nativeTimeout(resolve,0));assert.match(copied,/побыть со мной/);assert.doesNotMatch(copied,/Личная заметка/);
 nav('journal');clickText('Календарь и неделя');assert.match(content().textContent,/Что ты отмечал полезным/);assert.match(content().querySelector('.panel:last-child').textContent,/Мягкое дыхание/);
-nav('settings');assert.match(content().textContent,/7\.0\.0/);document.getElementById('theme').value='dark';document.getElementById('theme').onchange();assert.equal(document.documentElement.dataset.theme,'dark');clickText('Показать текст копии');assert.match(document.getElementById('export-text').value,/Беспокойство/);
+nav('settings');assert.match(content().textContent,/7\.0\.1/);document.getElementById('theme').value='dark';document.getElementById('theme').onchange();assert.equal(document.documentElement.dataset.theme,'dark');clickText('Показать текст копии');assert.match(document.getElementById('export-text').value,/Беспокойство/);
 console.log('PASS: home, emotion/context/note, duration filter, templates, last-question save, calendar and escaping, practice feedback idempotency, room, goals, sharing and settings/export.');
