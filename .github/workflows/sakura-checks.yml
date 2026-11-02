@@ -19,6 +19,7 @@ jobs:
           node --check content.js
           node --check wellbeing.js
           node --check cozy-ui.js
+          node --check updates.js
       - name: Automated tests
         run: npm test
       - name: Validate app assets
@@ -27,5 +28,8 @@ jobs:
           test -s sakura-night.webp
           test -s PRODUCT-COMPARISON.md
           grep -q 'Sakura feature extensions' styles.css
-          grep -q 'styles.css?v=7.0.1-sakura' index.html
+          grep -q 'styles.css?v=7.0.2-sakura' index.html
+      - name: Verify public Pages release
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/check-published.mjs
 

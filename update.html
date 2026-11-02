@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Обновить CHILLING PLACE</title>
+  <link rel="stylesheet" href="styles.css?v=7.0.2-sakura">
+</head>
+<body>
+  <main class="shell"><section class="panel"><h1>Открываем свежую версию</h1><p>Записи на этом устройстве сохранятся.</p><a id="open-app" href="index.html?cp_refresh=7.0.2">Открыть приложение →</a></section></main>
+  <script type="module">
+    import {freshPageUrl} from './updates.js?v=7.0.2';
+    const target=new URL(window.location.href);
+    target.pathname=new URL('./index.html',window.location.href).pathname;
+    const url=freshPageUrl(target.href);
+    document.getElementById('open-app').href=url;
+    window.location.replace(url);
+  </script>
+</body>
+</html>
