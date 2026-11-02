@@ -91,9 +91,9 @@ function renderEditor(){
   const template=templates[draft.template||'thought'];
   const steps=template.steps;
   main.innerHTML='<div class="editor-intro"><div class="water-flower" aria-hidden="true">🌸</div><h1>Разберём одну мысль</h1><p>Спокойно ответь на несколько вопросов.<br>Можно начать с одного.</p></div>';
-  main.querySelector('.water-flower').textContent=template.icon;
-  main.querySelector('h1').textContent=template.label;
-  main.querySelector('.editor-intro p').textContent=template.description+' Можно пропустить любой вопрос.';
+  main.querySelector('.water-flower').textContent='🌸';
+  main.querySelector('h1').textContent=(draft.template||'thought')==='thought'?'Разберём одну мысль':template.label;
+  if((draft.template||'thought')!=='thought')main.querySelector('.editor-intro p').textContent=template.description+' Можно пропустить любой вопрос.';
   const panel=document.createElement('section');panel.className='panel';
   panel.className='journal-form';
   panel.innerHTML=`<form id="entry-form"><div class="question-glass"><span class="step-pill">${step+1} / ${steps.length}</span><div id="fields"></div></div><button class="primary concept-cta" type="submit">${step===steps.length-1?'Твоя запись':'Далее'} →</button><button class="text-button skip-question" type="submit">Пропустить вопрос →</button><p class="small muted" id="draft-status" role="status">Черновик сохраняется на этом устройстве.</p></form>`;
