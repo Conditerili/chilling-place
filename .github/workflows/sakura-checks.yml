@@ -1,9 +1,9 @@
-name: Sakura Night checks
+name: Chilling Place checks
 on:
   pull_request:
     branches: [main]
   push:
-    branches: [design/sakura-v6]
+    branches: [main, design/cozy-v7]
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -17,10 +17,15 @@ jobs:
           node --check app.js
           node --check storage.js
           node --check content.js
+          node --check wellbeing.js
+          node --check cozy-ui.js
       - name: Automated tests
         run: npm test
-      - name: Validate Sakura Night assets
+      - name: Validate app assets
         run: |
           test -s styles.css
-          grep -q 'Sakura shoreline artwork' styles.css
-          grep -q 'styles.css?v=6.0.1' index.html
+          test -s sakura-night.webp
+          test -s PRODUCT-COMPARISON.md
+          grep -q 'Cozy Place v7' styles.css
+          grep -q 'styles.css?v=7.0.0' index.html
+

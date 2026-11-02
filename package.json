@@ -1,8 +1,9 @@
 {
   "name": "chilling-place",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "private": true,
   "type": "module",
-  "scripts": {"test": "node --test tests/*.test.js", "bot": "node bot/server.js"},
+  "scripts": {"test": "node --test tests/*.test.js", "test:ui": "node scripts/ui-smoke.mjs", "bot": "node bot/server.js"},
   "engines": {"node": ">=22"}
 }
+

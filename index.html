@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#150e19">
+  <meta name="theme-color" content="#f6f3eb">
   <meta name="description" content="Твоё место, чтобы выдохнуть. Короткие практики, дневник мыслей и маленькие шаги без давления.">
   <title>CHILLING PLACE · Твоё место, чтобы выдохнуть</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%23665b91'/%3E%3Cpath d='M18 38Q18 15 46 18Q46 46 22 42M23 42L38 27' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=6.0.1-smooth1">
+  <link rel="stylesheet" href="styles.css?v=7.0.0">
   <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
-  <script type="module" src="app.js?v=6.6"></script>
+  <script type="module" src="app.js?v=7.0.0"></script>
 </head>
 <body>
   <a class="skip" href="#content">К содержимому</a>
@@ -27,10 +27,10 @@
     <footer class="footer">В своём темпе. На своей стороне.<br><button class="text-button" id="about-button">О поддержке и личных данных</button></footer>
   </div>
   <nav class="bottom-nav" aria-label="Основная навигация">
-    <button data-page="now" aria-label="Сейчас" title="Сейчас"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="m3 15 13-11 13 11M7 13v15h7v-8h5v8h6V13"/></svg></button>
-    <button data-page="journal" aria-label="Дневник" title="Дневник"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg></button>
-    <button data-page="practices" aria-label="Практики" title="Практики"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 28V18h5v10z M13 28V11h5v17z M23 28V4h5v24z"/></svg></button>
-    <button data-page="settings" aria-label="Профиль" title="Профиль"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M22 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM4 28q0-10 12-10t12 10Z"/></svg></button>
+    <button data-page="now" aria-label="Сейчас" title="Сейчас"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="m3 15 13-11 13 11M7 13v15h7v-8h5v8h6V13"/></svg><span>Сейчас</span></button>
+    <button data-page="journal" aria-label="Дневник" title="Дневник"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg><span>Дневник</span></button>
+    <button data-page="practices" aria-label="Практики" title="Практики"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 28V18h5v10z M13 28V11h5v17z M23 28V4h5v24z"/></svg><span>Практики</span></button>
+    <button data-page="settings" aria-label="Профиль" title="Профиль"><svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M22 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0ZM4 28q0-10 12-10t12 10Z"/></svg><span>Профиль</span></button>
   </nav>
   <div id="toast" role="status" class="toast" hidden></div>
   <dialog id="confirm-dialog" aria-labelledby="confirm-title">
@@ -40,3 +40,4 @@
   <noscript><p class="notice">Для дневника и упражнений включи JavaScript в браузере.</p></noscript>
 </body>
 </html>
+

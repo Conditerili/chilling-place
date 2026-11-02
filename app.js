@@ -1,14 +1,17 @@
 import {attachWaterPlayer} from './water-player.js?v=2';
 import {startCheckup} from './check-in.js?v=1';
 import {showLibrary,showGardenGame} from './garden-rooms.js?v=3';
-import {createStore, uid, FIELDS} from './storage.js?v=6.2';
-import {practices, quests, riddles} from './content.js?v=6.0.0';
+import {createStore, uid, FIELDS} from './storage.js?v=7.0.0';
+import {practices, quests, riddles} from './content.js?v=7.0.0';
+import {templates,entryLabels} from './wellbeing.js?v=7.0.0';
+import {createWellbeingUI} from './cozy-ui.js?v=7.0.0';
 
 const $=id=>document.getElementById(id);
 const main=$('content');
 let backing;
 try { backing=window.localStorage; } catch { backing={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}}; }
 const store=createStore(backing);
+const cozy=createWellbeingUI({main,store,go,openEditor,startPractice,toast,report,confirmAction});
 let settings={theme:'system',reducedMotion:false};
 try { settings={...settings,...JSON.parse(backing.getItem('chillingSettings')||'{}')}; } catch {}
 let route='now', draft=null, step=0, mood='', practice=null, practiceStep=0, questIndex=0, riddleIndex=0, search='', toastTimer;
@@ -19,7 +22,9 @@ function applyTheme(){
   const dark=settings.theme==='dark'||(settings.theme==='system'&&(tg?.colorScheme ? tg.colorScheme==='dark' : media.matches));
   document.documentElement.dataset.theme=dark?'dark':'light';
   document.documentElement.dataset.motion=settings.reducedMotion?'reduced':'auto';
-  document.querySelector('meta[name=theme-color]').content='#100b13';
+  const color=dark?'#202923':'#f6f3eb';
+  document.querySelector('meta[name=theme-color]').content=color;
+  try{tg?.setHeaderColor?.(color);tg?.setBackgroundColor?.(color);}catch{}
 }
 applyTheme();media.addEventListener?.('change',applyTheme);
 try {tg?.ready();tg?.expand();tg?.onEvent('themeChanged',applyTheme);tg?.BackButton?.onClick(screenBack);}catch{}
@@ -45,11 +50,12 @@ function screenBack(){
   if(route==='checkup'){go('editor');return;}
   if(route==='summary' && !summarySaved){go('editor');return;}
   if(route==='editor' && step>0){step--;render();return;}
-  go(route==='now'?'practices':['summary','editor'].includes(route)?'journal':'now');
+  go(route==='now'?'practices':['summary','editor','templates','insights'].includes(route)?'journal':'now');
 }
 action('screen-back',screenBack);
 attachWaterPlayer($('water-orb'),$('water-player'));
 function render(){
+  cozy.cleanup();
   $('water-home').hidden=route!=='now';
   if(route!=='now' && !$('water-player').hidden)$('water-player').querySelector('.water-close').click();
   document.body.dataset.screen=route;
@@ -57,68 +63,52 @@ function render(){
   $('screen-back').textContent=route==='now'?'☰':'←';
   $('screen-back').setAttribute('aria-label',route==='now'?'Открыть практики':'Назад');
   main.replaceChildren();main.classList.remove('fade');void main.offsetWidth;main.classList.add('fade');
-  const active=['reading','games'].includes(route)?'now':route==='editor'?'journal':(['practice','quest','riddle'].includes(route)?'practices':route);
+  const active=['reading','games','support'].includes(route)?'now':['editor','summary','templates','insights'].includes(route)?'journal':(['practice','quest','riddle'].includes(route)?'practices':route);
   document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.page===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   try{route==='now'?tg?.BackButton?.hide():tg?.BackButton?.show();}catch{}
-  ({now:renderNow,checkup:()=>startCheckup(main,checkupState,()=>go('editor')),reading:()=>showLibrary(main,()=>openEditor()),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
+  ({now:renderNow,templates:cozy.renderTemplates,insights:cozy.renderInsights,support:cozy.renderSupport,checkup:()=>startCheckup(main,checkupState,()=>go('editor')),reading:()=>showLibrary(main,()=>openEditor()),games:()=>showGardenGame(main,()=>go('now')),journal:renderJournal,editor:renderEditor,summary:renderSummary,practices:renderPractices,practice:renderPractice,quest:renderQuest,riddle:renderRiddle,settings:renderSettings}[route]||renderNow)();
 }
-function go(page){route=page;history.replaceState(null,'',`#${page}`);render();window.scrollTo({top:0,behavior:'instant'});main.focus({preventScroll:true});}
+function go(page){if(page==='quest'&&route!=='quest')questIndex=new Date().getDate()%quests.length;route=page;history.replaceState(null,'',`#${page}`);render();window.scrollTo({top:0,behavior:'instant'});main.focus({preventScroll:true});}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
 action('settings-button',()=>go('settings'));action('about-button',()=>go('settings'));
-window.addEventListener('hashchange',()=>{route=location.hash.slice(1);if(!['now','journal','practices','settings','reading','games'].includes(route))route='now';render();});
+window.addEventListener('pagehide',cozy.cleanup);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cozy.cleanup();});
+window.addEventListener('hashchange',()=>{route=location.hash.slice(1);if(!['now','journal','practices','settings','reading','games','templates','insights','support'].includes(route))route='now';render();});
 window.addEventListener('storage',e=>{if(e.key==='chillingPlace.v2'){if(route==='editor')toast('Данные изменены в другой вкладке. Проверь запись перед сохранением.');else render();}});
 
-function renderNow(){
-  const destinations = [
-    ['write','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg>','Терапия','Разобраться в мыслях'],
-    ['small-step','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M11 7H7v21h18V7h-5M12 5h7v4h-7zM10 17l3 3 7-7"/></svg>','Задачи','Поддержать баланс'],
-    ['distract','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20v-5a12 12 0 0 1 24 0v5M4 17h5v10H6q-2 0-2-2zM28 17h-5v10h3q2 0 2-2z"/></svg>','Отвлечься','Сменить фокус и выдохнуть'],
-    ['records','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 8Q8 3 2 6v20q7-3 14 1 7-4 14-1V6q-7-3-14 2Zm0 0v19"/></svg>','Мои записи','История и заметки'],
-    ['reading','❧','Литература','Короткое чтение у озера'],
-    ['games','✾','Мини-игры','Сад на воде']
-  ];
-  main.innerHTML = `<section class="garden-home"><h1 class="sr-brand">CHILLING PLACE</h1>
-    <p class="garden-tag">YOUR PERSONAL SAFE SPACE</p><div class="divider" aria-hidden="true">✦</div>
-    <div class="garden-menu">${destinations.map(([id,icon,title,detail]) =>
-      `<button class="garden-link" id="${id}"><span aria-hidden="true">${icon}</span><span><strong>${title}</strong><small>${detail}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div></section>
-    <section class="panel check-in"><h2>Как ты сейчас?</h2><div class="moods" id="moods"></div>
-    <p class="small muted" id="mood-note">Можно просто заметить своё состояние.</p>
-    <button class="quiet" id="support">Мне тревожно</button></section>`;
-
-  action('reading',()=>go('reading'));action('games',()=>go('games'));
-  action('distract',()=>go('riddle'));action('records',()=>go('journal'));
-  for(const name of ['Спокойно','Тревожно','Усталость','Грустно','Не знаю']){const b=document.createElement('button');b.className='mood';b.textContent=name;b.setAttribute('aria-pressed',String(mood===name));b.onclick=()=>{mood=name;renderNowOnlyMoods();};$('moods').append(b);}
-  function renderNowOnlyMoods(){document.querySelectorAll('.mood').forEach(b=>b.setAttribute('aria-pressed',String(b.textContent===mood)));$('mood-note').textContent='Спасибо, что заметил. Можно выбрать поддержку или записать мысль. Эта отметка не сохраняется.';}
-  action('support',()=>startPractice('pause'));action('write',()=>openEditor());action('small-step',()=>go('quest'));
-}
-function newDraft(){return {id:uid(),createdAt:new Date().toISOString(),anxiety:null,anxietyAfter:null,...Object.fromEntries(FIELDS.map(f=>[f,'']))};}
-function openEditor(entry){
-  if(entry && draft && draft.id!==entry.id){confirmAction('Открыть другую запись?','Текущий черновик будет заменён. Сначала сохрани его, если он нужен.').then(ok=>{if(ok){draft={...entry};step=0;attempt(()=>store.draft(draft));go('editor');}});return;}
-  if(entry)draft={...entry};else if(!draft)draft=newDraft();
+function renderNow(){cozy.renderNow();}
+function newDraft(template='thought'){return {id:uid(),template,createdAt:new Date().toISOString(),anxiety:null,anxietyAfter:null,...Object.fromEntries(FIELDS.map(f=>[f,'']))};}
+async function openEditor(entry,template){
+  const replacement=entry&&draft&&draft.id!==entry.id||template&&draft&&draft.template!==template;
+  if(replacement&&!await confirmAction('Открыть другую запись?','Текущий черновик будет заменён. Сначала сохрани его, если он нужен.'))return;
+  if(entry)draft={...entry};else if(!draft||replacement)draft=newDraft(template||'thought');
   step=0;go('editor');
 }
 const fieldLabels={situation:'Что произошло?',thought:'Какая мысль тебя тревожит?',emotion:'Какое чувство ты замечаешь?',facts:'Какие факты поддерживают эту мысль?',against:'Какие факты с ней не совпадают?',alternative:'Как ещё можно посмотреть на ситуацию?',nextStep:'Какой небольшой шаг тебе сейчас по силам?'};
-const steps = [
-  ['Мысль', 'thought', 'Что именно тебя беспокоит?', ['situation','emotion']],
-  ['Факты', 'facts', 'Что ты знаешь наверняка, а что предполагаешь?', ['against']],
-  ['Другой взгляд', 'alternative', 'Какой ещё исход возможен?', ['nextStep']]
-];
 function renderEditor(){
+  cozy.cleanup();
   if(!draft)draft=newDraft();
+  const template=templates[draft.template||'thought'];
+  const steps=template.steps;
   main.innerHTML='<div class="editor-intro"><div class="water-flower" aria-hidden="true">🌸</div><h1>Разберём одну мысль</h1><p>Спокойно ответь на несколько вопросов.<br>Можно начать с одного.</p></div>';
+  main.querySelector('.water-flower').textContent=template.icon;
+  main.querySelector('h1').textContent=template.label;
+  main.querySelector('.editor-intro p').textContent=template.description+' Можно пропустить любой вопрос.';
   const panel=document.createElement('section');panel.className='panel';
   panel.className='journal-form';
-  panel.innerHTML=`<form id="entry-form"><div class="question-glass"><span class="step-pill">${step+1} / ${steps.length}</span><div id="fields"></div></div><button class="primary concept-cta" type="submit">${step===steps.length-1?'Твоя запись':'Далее'} →</button><p class="small muted" id="draft-status" role="status">Черновик сохраняется на этом устройстве.</p></form>`;
+  panel.innerHTML=`<form id="entry-form"><div class="question-glass"><span class="step-pill">${step+1} / ${steps.length}</span><div id="fields"></div></div><button class="primary concept-cta" type="submit">${step===steps.length-1?'Твоя запись':'Далее'} →</button><button class="text-button skip-question" type="submit">Пропустить вопрос →</button><p class="small muted" id="draft-status" role="status">Черновик сохраняется на этом устройстве.</p></form>`;
   main.append(panel);
   const [,primary,question,extra]=steps[step];
   const details=document.createElement('details');
   const summary=document.createElement('summary');summary.textContent='Дополнить запись';details.append(summary);
   for(const field of [primary,...extra]){const label=document.createElement('label');label.htmlFor=field;label.textContent=field===primary?question:fieldLabels[field];const input=document.createElement('textarea');input.id=field;input.name=field;input.maxLength=4000;input.value=draft[field];input.placeholder=field==='thought'?'Например: «Боюсь, что не справлюсь…»':'Можно коротко. Можно пока не знать.';input.addEventListener('input',()=>{draft[field]=input.value;persistDraft();});(field===primary?$('fields'):details).append(label,input);}
+  if(draft.template!=='thought')$(primary).placeholder='Можно коротко. Можно пока не знать.';
+  $('fields').append(cozy.voiceInput($(primary),value=>{draft[primary]=value;persistDraft();}));
   $('fields').append(details);
-  if(step===0||step===2){const field=step===0?'anxiety':'anxietyAfter';const label=document.createElement('label');label.htmlFor=field;label.textContent=step===0?'Насколько сильна тревога сейчас?':'Тревога после записи — если хочется отметить';const input=document.createElement('input');input.type='range';input.id=field;input.min=0;input.max=10;input.value=draft[field]??5;const value=document.createElement('p');value.id='score-value';value.className='muted small';const update=()=>{value.textContent=draft[field]===null?'Не отмечено · шкала от 0 до 10':`${draft[field]} из 10`;input.setAttribute('aria-valuetext',draft[field]===null?'Не отмечено':`${draft[field]} из 10`);};input.oninput=()=>{draft[field]=Number(input.value);update();persistDraft();};const skip=document.createElement('button');skip.type='button';skip.className='text-button';skip.textContent='Не отмечать';skip.onclick=()=>{draft[field]=null;update();persistDraft();};details.append(label,input,value,skip);update();}
+  if((draft.template||'thought')==='thought'&&(step===0||step===2)){const field=step===0?'anxiety':'anxietyAfter';const label=document.createElement('label');label.htmlFor=field;label.textContent=step===0?'Насколько сильна тревога сейчас?':'Тревога после записи — если хочется отметить';const input=document.createElement('input');input.type='range';input.id=field;input.min=0;input.max=10;input.value=draft[field]??5;const value=document.createElement('p');value.id='score-value';value.className='muted small';const update=()=>{value.textContent=draft[field]===null?'Не отмечено · шкала от 0 до 10':`${draft[field]} из 10`;input.setAttribute('aria-valuetext',draft[field]===null?'Не отмечено':`${draft[field]} из 10`);};input.oninput=()=>{draft[field]=Number(input.value);update();persistDraft();};const skip=document.createElement('button');skip.type='button';skip.className='text-button';skip.textContent='Не отмечать';skip.onclick=()=>{draft[field]=null;update();persistDraft();};details.append(label,input,value,skip);update();}
   if(step===steps.length-1){
     const link=document.createElement('button');link.type='button';link.className='text-button checkup-link';
-    link.textContent='полный чекап твоего психоэмоционального состояния';
+    link.textContent='Дополнительно: вопросы о самочувствии';
     link.onclick=openCheckup;panel.querySelector('.question-glass').append(link);
   }
   $('entry-form').onsubmit=e=>{
@@ -129,7 +119,7 @@ function renderEditor(){
   };
 }
 function renderSummary(){
-  const groups=[
+  const groups=summaryEntry.template&&summaryEntry.template!=='thought'?FIELDS.filter(f=>summaryEntry[f]?.trim()).map(f=>['✎',entryLabels(summaryEntry.template)[f],[f]]):[
     ['◎','Суть мысли',['thought','situation','emotion']],
     ['⚖','Факты и предположения',['facts','against']],
     ['♧','Другой возможный исход',['alternative','nextStep']]
@@ -161,8 +151,9 @@ function persistDraft(){try{store.draft(draft);$('draft-status').textContent='Ч
 function dateText(entry){if(entry.createdAt){const d=new Date(entry.createdAt);if(!Number.isNaN(d.getTime()))return d.toLocaleString('ru-RU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}return entry.date||'Дата не указана';}
 function renderJournal(){
   main.append(heading('ТВОЁ ЛИЧНОЕ ПРОСТРАНСТВО','Дневник мыслей','Здесь можно оставить то, что занимает голову. И вернуться, когда захочется.'));
+  main.append(cozy.journalTools());
   const bar=document.createElement('div');bar.className='actions';bar.innerHTML='<button class="primary" id="new-entry">+ Записать мысль</button><button class="secondary" id="data-settings">Мои данные</button>';main.append(bar);
-  action('new-entry',()=>openEditor());action('data-settings',()=>go('settings'));
+  action('new-entry',()=>go('templates'));action('data-settings',()=>go('settings'));
   if(draft){const box=document.createElement('div');box.className='panel';box.innerHTML='<h3>У тебя есть черновик</h3><p class="muted small">Можно продолжить с того места, где остановился.</p><div class="actions"><button class="quiet" id="resume">Продолжить</button><button class="secondary" id="discard">Удалить черновик</button></div>';main.append(box);action('resume',()=>openEditor());action('discard',async()=>{if(await confirmAction('Удалить черновик?','Сохранённые записи останутся.'))attempt(()=>{store.draft(null);draft=null;render();});});}
   const state=attempt(()=>store.read());if(!state)return;
   if(!state.entries.length){const empty=document.createElement('div');empty.className='empty';empty.innerHTML='<div class="empty-icon" aria-hidden="true">▤</div><h2>Чистый лист — тоже начало</h2><p class="muted">Первая запись может быть всего из одной фразы.</p>';main.append(empty);return;}
@@ -171,7 +162,7 @@ function renderJournal(){
 }
 function entryCard(entry){
   const card=document.createElement('article');card.className='entry';const top=document.createElement('div');top.className='entry-head';const date=document.createElement('span');date.textContent=dateText(entry);top.append(date);if(entry.anxiety!==null){const badge=document.createElement('span');badge.className='badge';badge.textContent=`Тревога ${entry.anxiety}/10`;top.append(badge);}const preview=document.createElement('p');preview.className='entry-preview';preview.textContent=(entry.thought||entry.situation||FIELDS.map(key=>entry[key]).find(value=>value?.trim())||'Запись без текста').slice(0,180);
-  const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Открыть запись ↓';const body=document.createElement('dl');for(const field of FIELDS){if(!entry[field])continue;const term=document.createElement('dt');term.textContent=fieldLabels[field];const value=document.createElement('dd');value.textContent=entry[field];body.append(term,value);}if(entry.anxietyAfter!==null){const p=document.createElement('p');p.textContent=`Тревога после: ${entry.anxietyAfter}/10`;body.append(p);}details.append(summary,body);
+  const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Открыть запись ↓';const body=document.createElement('dl');for(const field of FIELDS){if(!entry[field])continue;const term=document.createElement('dt');term.textContent=entryLabels(entry.template)[field];const value=document.createElement('dd');value.textContent=entry[field];body.append(term,value);}if(entry.anxietyAfter!==null){const p=document.createElement('p');p.textContent=`Тревога после: ${entry.anxietyAfter}/10`;body.append(p);}details.append(summary,body);
   const actions=document.createElement('div');actions.className='actions';const edit=document.createElement('button');edit.className='secondary';edit.textContent='Изменить';edit.onclick=()=>openEditor(entry);const remove=document.createElement('button');remove.className='text-button';remove.textContent='Удалить';remove.onclick=async()=>{if(await confirmAction('Удалить запись?','Это действие нельзя отменить. Другие записи останутся.'))attempt(()=>{store.remove(entry.id);if(draft?.id===entry.id)draft=null;render();toast('Запись удалена.');});};actions.append(edit,remove);details.append(actions);card.append(top,preview,details);return card;
 }
 function renderPractices(){
@@ -181,26 +172,27 @@ function renderPractices(){
   const quest=document.createElement('button');quest.className='tile green';quest.innerHTML='<span class="tile-icon" aria-hidden="true">↗</span><h3>Маленький шаг</h3><p>Забота о себе без списка обязательств.</p><span class="meta">12 ИДЕЙ · 2 МИН</span>';quest.onclick=()=>go('quest');grid.append(quest);
   const riddle=document.createElement('button');riddle.className='tile rose';riddle.innerHTML='<span class="tile-icon" aria-hidden="true">?</span><h3>Небольшая загадка</h3><p>Просто переключить внимание.</p><span class="meta">МИНУТА ЛЮБОПЫТСТВА</span>';riddle.onclick=()=>go('riddle');grid.append(riddle);
 }
-function startPractice(id){practice=id;practiceStep=0;go('practice');}
+function startPractice(id){practice=id;practiceStep=0;cozy.beginPractice(id);go('practice');}
 function renderPractice(){
   const p=practices[practice];if(!p){route='practices';renderPractices();return;}
   main.append(heading('ПАУЗА ДЛЯ СЕБЯ',p.title));
   const panel=document.createElement('section');panel.className='panel';main.append(panel);
-  if(practiceStep>=p.steps.length){panel.innerHTML='<div class="practice-symbol" aria-hidden="true">✧</div><h2>Спасибо, что уделил себе время</h2><p class="muted">Как тебе сейчас? Любой ответ — нормальный.</p><div id="feedback" class="moods"></div><div id="feedback-result" role="status"></div><div class="actions"><button class="primary" id="finish-practice">Закончить</button><button class="secondary" id="practice-write">Записать мысль</button></div>';for(const text of ['Стало легче','Без изменений','Стало тяжелее','Не хочу оценивать']){const b=document.createElement('button');b.className='mood';b.textContent=text;b.onclick=()=>{$('feedback-result').replaceChildren();const note=document.createElement('p');note.className='note';note.textContent=text==='Стало тяжелее'?'Давай на этом остановимся. Можно обратиться к человеку, которому доверяешь. Если состояние долго мешает жизни, стоит обсудить его со специалистом.':'Не нужно добиваться определённого результата. Можно просто отдохнуть. Эта оценка не сохраняется.';$('feedback-result').append(note);};$('feedback').append(b);}action('finish-practice',()=>go('now'));action('practice-write',()=>openEditor());return;}
+  if(practiceStep>=p.steps.length){cozy.practiceDone(panel);return;}
   panel.innerHTML=`<div class="step-label"><span>Можно пропустить любой шаг</span><span>${practiceStep+1} / ${p.steps.length}</span></div><progress max="${p.steps.length}" value="${practiceStep+1}" aria-label="Шаг упражнения"></progress><div class="practice-symbol" aria-hidden="true"></div><h2 class="practice-text"></h2><p class="practice-hint"></p><div class="actions"><button class="secondary" id="practice-prev">Назад</button><button class="primary" id="practice-next">Дальше →</button></div><div class="actions"><button class="text-button" id="practice-skip">Пропустить шаг</button><button class="text-button" id="practice-stop">Остановиться</button></div>`;
   panel.querySelector('.practice-symbol').textContent=p.symbol;panel.querySelector('.practice-text').textContent=p.steps[practiceStep][0];panel.querySelector('.practice-hint').textContent=p.steps[practiceStep][1];$('practice-prev').disabled=practiceStep===0;const next=()=>{practiceStep++;render();main.focus();};action('practice-next',next);action('practice-skip',next);action('practice-prev',()=>{practiceStep--;render();});action('practice-stop',()=>{go('now');toast('Можно остановиться. Ты ничего не должен.');});
 }
-function renderQuest(){main.append(heading('БЕЗ ДАВЛЕНИЯ','Один маленький шаг'));const box=document.createElement('section');box.className='panel';box.innerHTML='<div class="practice-symbol" aria-hidden="true">✳</div><p class="practice-text" id="quest-text"></p><p class="practice-hint">Это предложение, а не обязанность.</p><div class="actions"><button class="primary" id="quest-done">Сделал</button><button class="secondary" id="quest-next">Другой вариант</button></div><button class="text-button" id="quest-skip">Сегодня пропущу</button>';main.append(box);$('quest-text').textContent=quests[questIndex];action('quest-next',()=>{questIndex=(questIndex+1)%quests.length;render();});action('quest-done',()=>{go('now');toast('Маленький шаг — уже забота о себе.');});action('quest-skip',()=>go('now'));}
+function renderQuest(){main.append(heading('БЕЗ ДАВЛЕНИЯ','Один маленький шаг'));const box=document.createElement('section');box.className='panel';box.innerHTML='<div class="practice-symbol" aria-hidden="true">✳</div><p class="practice-text" id="quest-text"></p><p class="practice-hint">Это предложение, а не обязанность.</p><div class="actions"><button class="primary" id="quest-done">Сделал</button><button class="secondary" id="quest-next">Другой вариант</button></div><button class="text-button" id="quest-skip">Сегодня пропущу</button>';main.append(box);$('quest-text').textContent=quests[questIndex];action('quest-next',()=>{questIndex=(questIndex+1)%quests.length;render();});action('quest-done',()=>{if(cozy.completeQuest(quests[questIndex])){go('now');toast('Маленький шаг сохранён. Твоё растение растёт.');}});action('quest-skip',()=>go('now'));}
 function renderRiddle(){main.append(heading('НЕМНОГО ЛЮБОПЫТСТВА','Просто загадка'));const box=document.createElement('section');box.className='panel';box.innerHTML='<div class="practice-symbol" aria-hidden="true">?</div><p id="riddle-question" class="practice-text"></p><p id="riddle-answer" class="practice-hint" role="status"></p><div class="actions"><button class="primary" id="reveal">Показать ответ</button><button class="secondary" id="another-riddle">Ещё загадка</button></div>';main.append(box);$('riddle-question').textContent=riddles[riddleIndex][0];action('reveal',()=>{$('riddle-answer').textContent=riddles[riddleIndex][1];});action('another-riddle',()=>{riddleIndex=(riddleIndex+1)%riddles.length;render();});}
 function download(text,name){const blob=new Blob([text],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);toast('Файл подготовлен. Проверь загрузки браузера.');}
 function renderSettings(){
   main.append(heading('ПО-ТВОЕМУ','Настройки и данные'));
   const panel=document.createElement('section');panel.className='panel';panel.innerHTML=`<h2>Как тебе удобнее</h2><label for="theme">Оформление</label><select id="theme"><option value="system">Как в системе / Telegram</option><option value="light">Светлое</option><option value="dark">Тёмное</option></select><label class="check-label"><input type="checkbox" id="motion">Уменьшить анимацию</label>`;main.append(panel);$('theme').value=settings.theme;$('motion').checked=settings.reducedMotion;
   const updateSettings=()=>{settings={theme:$('theme').value,reducedMotion:$('motion').checked};applyTheme();try{backing.setItem('chillingSettings',JSON.stringify(settings));}catch{report(new Error('Настройки применены на эту сессию, но сохранить их не удалось.'));}};$('theme').onchange=updateSettings;$('motion').onchange=updateSettings;
-  const data=document.createElement('section');data.className='panel';data.innerHTML=`<h2>Твои записи — под твоим контролем</h2><p class="muted">Дневник хранится только в этом браузере или окне Telegram на этом устройстве. Он не синхронизируется между ними. Очистка данных браузера может удалить записи.</p><p class="small muted">Тексты не отправляются в ИИ или на наш сервер. Это не зашифрованное хранилище: человек с доступом к устройству может прочитать записи.</p><p class="small muted">Экспорт содержит личные тексты и черновик. Сохрани его в надёжном месте. Импорт добавит записи, не удаляя существующие.</p><div class="actions"><button class="secondary" id="export">Скачать записи</button><button class="secondary" id="import">Восстановить из файла</button></div><input type="file" id="import-file" accept="application/json,.json" hidden><p id="import-status" class="small" role="status"></p><details><summary>Если скачивание не работает</summary><p class="small muted">Покажи копию, выдели весь текст и сохрани в личный файл .json. Не отправляй её в публичные чаты.</p><button class="text-button" id="show-export">Показать текст копии</button><textarea id="export-text" aria-label="Текст резервной копии" readonly hidden></textarea></details><details><summary>Восстановление после ошибки</summary><p class="small muted">Исходная копия нужна для ручного восстановления повреждённых данных. Это не обычный файл импорта.</p><button class="text-button" id="raw-export">Скачать исходную копию</button></details><div class="actions"><button class="danger" id="delete-all">Удалить все записи и черновик</button></div>`;main.append(data);
+  const data=document.createElement('section');data.className='panel';data.innerHTML=`<h2>Твоя история — под твоим контролем</h2><p class="muted">Дневник хранится только в этом браузере или окне Telegram на этом устройстве. Он не синхронизируется между ними. Очистка данных браузера может удалить записи.</p><p class="small muted">При печатном вводе тексты не отправляются в ИИ или на наш сервер. Голосовой ввод включается отдельно и может использовать сервис распознавания браузера. Это не зашифрованное хранилище: человек с доступом к устройству может прочитать записи.</p><p class="small muted">Экспорт содержит личные тексты, черновик, состояния, практики и маленькие шаги. Сохрани его в надёжном месте. Импорт добавит записи, не удаляя существующие.</p><div class="actions"><button class="secondary" id="export">Скачать записи</button><button class="secondary" id="import">Восстановить из файла</button></div><input type="file" id="import-file" accept="application/json,.json" hidden><p id="import-status" class="small" role="status"></p><details><summary>Если скачивание не работает</summary><p class="small muted">Покажи копию, выдели весь текст и сохрани в личный файл .json. Не отправляй её в публичные чаты.</p><button class="text-button" id="show-export">Показать текст копии</button><textarea id="export-text" aria-label="Текст резервной копии" readonly hidden></textarea></details><details><summary>Восстановление после ошибки</summary><p class="small muted">Исходная копия нужна для ручного восстановления повреждённых данных. Это не обычный файл импорта.</p><button class="text-button" id="raw-export">Скачать исходную копию</button></details><div class="actions"><button class="danger" id="delete-all">Удалить дневник и всю историю</button></div>`;main.append(data);
   action('export',()=>attempt(()=>download(store.export(),'chilling-place-backup.json')));action('show-export',()=>attempt(()=>{$('export-text').value=store.export();$('export-text').hidden=false;$('export-text').focus();$('export-text').select();}));action('raw-export',()=>attempt(()=>download(store.raw(),'chilling-place-recovery.json')));action('import',()=>$('import-file').click());
-  $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
-  action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены все записи, черновик и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
-  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 6.6 · Музыка у воды</p>';main.append(about);
+  $('import-file').onchange=async()=>{const file=$('import-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Выбери файл размером до 10 МБ.');const text=await file.text();if(await confirmAction('Добавить записи из файла?','Текущие записи сохранятся. Совпадающие записи не будут добавлены повторно.')){const count=store.import(text);if(!draft)draft=store.read().draft;$('import-status').textContent=`Добавлено записей: ${count}. В истории теперь состояний: ${store.read().checkins.length}, практик: ${store.read().sessions.length}. Черновик восстановлен, если своего не было.`;clearNotice();}}catch(e){report(e);}finally{$('import-file').value='';}};
+  action('delete-all',async()=>{if(await confirmAction('Удалить весь дневник?','Будут удалены записи, черновик, состояния, история практик, маленькие шаги и старая локальная копия. Сначала скачай экспорт, если хочешь их сохранить.'))attempt(()=>{store.clear();draft=null;search='';clearNotice();toast('Все записи на этом устройстве удалены.');});});
+  const about=document.createElement('section');about.className='panel';about.innerHTML='<h2>Поддержка, а не терапия</h2><p class="muted">CHILLING PLACE — пространство для самоподдержки взрослых. Здесь нет диагностики, лечения, ИИ-чата или наблюдения специалиста. Если переживания долго мешают повседневной жизни, стоит обратиться за профессиональной помощью.</p><p class="muted">Если тебе или кому-то рядом прямо сейчас угрожает опасность, обратись в местную экстренную службу или к человеку, который может быть рядом. Это приложение не получает экстренные обращения.</p><p class="small muted">Напоминания и облачная синхронизация пока не подключены.</p><p class="eyebrow">CHILLING PLACE · 7.0.0 · Уютное личное место</p>';main.append(about);
 }
-route=['now','journal','practices','settings','reading','games'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();
+route=['now','journal','practices','settings','reading','games','templates','insights','support'].includes(location.hash.slice(1))?location.hash.slice(1):'now';render();
+
