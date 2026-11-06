@@ -1,5 +1,5 @@
 // Refresh the current same-origin entry point; never clear local data or music caches.
-export const APP_VERSION='7.0.2';
+export const APP_VERSION='7.0.5';
 export function freshPageUrl(href,stamp=Date.now()){
   const url=new URL(href);
   url.searchParams.set('cp_refresh',String(stamp));

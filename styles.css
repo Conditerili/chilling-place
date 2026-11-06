@@ -301,3 +301,19 @@ body[data-screen=now] #screen-title{font:500 clamp(19px,5.4vw,29px)/1 Georgia,se
  .mood-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .calendar-grid{gap:3px}.calendar-day{min-height:30px}
 }
+
+/* Home: compact music control beside the state selector, above the tagline. */
+.home-controls{display:grid;grid-template-columns:60px minmax(0,1fr);gap:12px;align-items:center;max-width:480px;margin:8px auto 0}
+.home-controls #water-home{display:contents}
+.home-controls .water-orb{grid-column:1;grid-row:1;width:60px;height:60px}
+.home-controls .water-type{font-size:21px}
+.home-controls .water-type small{font-size:10px}
+.home-controls .check-in{grid-column:2;grid-row:1;min-width:0;margin:0;padding:0;border:0;background:none;box-shadow:none}
+.home-controls .check-in h2{font-size:16px;margin:0 0 4px}
+.home-controls .check-in>p{font-size:11px;line-height:1.4;margin-bottom:8px}
+.home-controls .mood-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.home-controls .mood-option{min-height:62px;padding:7px 2px;gap:5px;border-radius:17px;font-size:11px}
+.home-controls .mood-face{font-size:24px}
+.home-controls .water-player{grid-column:1/-1;grid-row:2;width:100%;margin:0 auto}
+.home-controls #checkin-detail:empty{display:none}
+@media(max-width:350px){.home-controls{grid-template-columns:50px minmax(0,1fr);gap:8px}.home-controls .water-orb{width:50px;height:50px}.home-controls .mood-option{font-size:10px}}

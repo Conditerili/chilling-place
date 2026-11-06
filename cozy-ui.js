@@ -39,6 +39,7 @@ export function createWellbeingUI({main,store,go,openEditor,startPractice,toast,
   }
   function practiceButton(id){const p=practices[id];const b=button('',()=>startPractice(id),'recommendation');b.append(el('span','recommendation-icon',p.symbol),el('span','',p.title),el('small','muted',`${minuteFor(id)} мин`),el('span','muted','↗'));return b;}
   function renderNow(){
+    main.before(document.getElementById('water-home'));
     main.replaceChildren();const state=read();if(!state)return;
   const destinations = [
     ['write','<svg aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 23C8 18 11 10 16 4c5 6 8 14 0 19Zm0 0C8 23 4 18 3 10c5 1 8 3 10 6m3 7c8 0 12-5 13-13-5 1-8 3-10 6M3 22q5 5 13 2 8 3 13-2"/></svg>','Терапия','Разобраться в мыслях'],
@@ -60,7 +61,8 @@ export function createWellbeingUI({main,store,go,openEditor,startPractice,toast,
     const check=card('Как ты сейчас?','Выбери то, что ближе. Можно пока не знать.');check.classList.add('check-in');
     const grid=el('div','mood-grid');grid.setAttribute('role','group');grid.setAttribute('aria-label','Твоё состояние');
     for(const [id,info] of Object.entries(moods)){const b=button('',()=>startMood(id),'mood-option');b.dataset.tone=info.tone;b.dataset.mood=id;b.setAttribute('aria-pressed',String(pending?.mood===id));b.append(el('span','mood-face',info.icon),el('span','',info.label));grid.append(b);}check.append(grid);
-    const detail=el('div');detail.id='checkin-detail';detail.setAttribute('aria-live','polite');check.append(detail);main.append(check);if(pending)paintCheckin();
+    const detail=el('div');detail.id='checkin-detail';detail.setAttribute('aria-live','polite');check.append(detail);
+    const controls=el('div','home-controls');controls.append(document.getElementById('water-home'),check);main.prepend(controls);if(pending)paintCheckin();
     const recent=state.checkins.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];
     if(recent){const line=el('p','small muted');line.textContent=`Последняя отметка: ${moods[recent.mood].label.toLocaleLowerCase()} · ${new Date(recent.createdAt).toLocaleDateString('ru-RU')} ${timeText(recent.createdAt)}`;main.append(line);}
     const suggestions=card('Что подойдёт сейчас',recent?`После отметки «${moods[recent.mood].label}». Выбор можно изменить.`:'Короткое действие без обязательств.');
